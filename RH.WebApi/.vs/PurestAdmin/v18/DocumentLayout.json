@@ -1,0 +1,111 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcrtcservices\\rcconsultationrtcservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcrtcservices\\rcconsultationrtcservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CDB69081-999B-4A86-8537-FB400C92C0F6}|Python.SFUServer\\Python.SFUServer.pyproj|D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{CDB69081-999B-4A86-8537-FB400C92C0F6}|Python.SFUServer\\Python.SFUServer.pyproj|solutionrelative:Python.SFUServer\\README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CDB69081-999B-4A86-8537-FB400C92C0F6}|Python.SFUServer\\Python.SFUServer.pyproj|D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\requirements.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{CDB69081-999B-4A86-8537-FB400C92C0F6}|Python.SFUServer\\Python.SFUServer.pyproj|solutionrelative:Python.SFUServer\\requirements.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 10,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RcConsultationRtcService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcRtcServices\\RcConsultationRtcService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcRtcServices\\RcConsultationRtcService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcRtcServices\\RcConsultationRtcService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcRtcServices\\RcConsultationRtcService.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAA0wCsAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-26T06:17:28.12Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "README.md",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\README.md",
+              "RelativeDocumentMoniker": "Python.SFUServer\\README.md",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\README.md",
+              "RelativeToolTip": "Python.SFUServer\\README.md",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAAgAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-11-26T06:12:31.532Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "requirements.txt",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\requirements.txt",
+              "RelativeDocumentMoniker": "Python.SFUServer\\requirements.txt",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\requirements.txt",
+              "RelativeToolTip": "Python.SFUServer\\requirements.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2025-11-26T06:12:20.085Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

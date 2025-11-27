@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "RH.Admin"
+		},
+		{
+			"path": "RH.WebApi"
+		},
+		{
+			"path": "RH.AIDevPackage"
+		}
+	]
+}

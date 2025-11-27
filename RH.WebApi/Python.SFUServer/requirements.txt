@@ -1,0 +1,9 @@
+fastapi==0.115.0
+uvicorn[standard]>=0.32.0          # 0.32.0 起上传 cp313
+python-dotenv>=1.1.0               # 1.1.0 起上传 cp313
+pydantic==2.12.0
+pydantic-settings==2.6.1
+pyjwt[crypto]==2.9.0
+aiortc>=1.9.0                      # 1.9.0 起上传 cp313
+orjson==3.10.7
+redis[hiredis]>=5.0.1
