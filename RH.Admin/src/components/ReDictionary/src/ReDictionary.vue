@@ -28,6 +28,6 @@ onBeforeMount(() => {
       :transfer="true"
       clearable
       filterable
-    ></vxe-select>
+    />
   </div>
 </template>

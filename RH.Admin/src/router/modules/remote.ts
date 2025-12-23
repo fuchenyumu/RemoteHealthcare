@@ -1,5 +1,7 @@
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import VideoChat from "~icons/mdi/video-account";
+import MonitorDashboard from "~icons/mdi/monitor-dashboard";
+import CalendarMonth from "~icons/mdi/calendar-month";
 
 const Layout = () => import("@/layout/index.vue");
 
@@ -15,13 +17,34 @@ export default {
   },
   children: [
     {
+      path: "/remote/dashboard",
+      name: "remote_dashboard",
+      meta: {
+        icon: useRenderIcon(MonitorDashboard),
+        title: "会诊驾驶舱",
+        permissions: ["remote.dashboard"]
+      },
+      component: () => import("@/views/remote-consultation/dashboard/index.vue")
+    },
+    {
+      path: "/remote/calendar",
+      name: "remote_calendar",
+      meta: {
+        icon: useRenderIcon(CalendarMonth),
+        title: "排期中心",
+        permissions: ["remote.calendar"]
+      },
+      component: () => import("@/views/remote-consultation/calendar/index.vue")
+    },
+    {
       path: "/remote/consultation",
       name: "remote_consultation",
       meta: {
         title: "会诊管理",
         permissions: ["remote.consultation"]
       },
-      component: () => import("@/views/remote-consultation/consultation/index.vue")
+      component: () =>
+        import("@/views/remote-consultation/consultation/index.vue")
     },
     {
       path: "/remote/patient-case",
@@ -30,7 +53,8 @@ export default {
         title: "患者快照",
         permissions: ["remote.patientCase"]
       },
-      component: () => import("@/views/remote-consultation/patient-case/index.vue")
+      component: () =>
+        import("@/views/remote-consultation/patient-case/index.vue")
     },
     {
       path: "/remote/patient-pack",
@@ -39,7 +63,8 @@ export default {
         title: "资料包管理",
         permissions: ["remote.patientPack"]
       },
-      component: () => import("@/views/remote-consultation/patient-pack/index.vue")
+      component: () =>
+        import("@/views/remote-consultation/patient-pack/index.vue")
     },
     {
       path: "/remote/sync-task",
@@ -61,4 +86,3 @@ export default {
     }
   ]
 } satisfies RouteConfigsTable;
-

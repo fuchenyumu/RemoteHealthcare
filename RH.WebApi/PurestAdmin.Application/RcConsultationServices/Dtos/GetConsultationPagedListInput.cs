@@ -46,4 +46,14 @@ public class GetConsultationPagedListInput : PaginationParams
     /// 创建时间-止
     /// </summary>
     public DateTime? CreateTimeEnd { get; set; }
+
+    /// <summary>
+    /// 排期开始时间-起（用于排期中心按月查询）
+    /// </summary>
+    public DateTime? ScheduledStartTimeStart { get; set; }
+
+    /// <summary>
+    /// 排期开始时间-止（用于排期中心按月查询）
+    /// </summary>
+    public DateTime? ScheduledStartTimeEnd { get; set; }
 }

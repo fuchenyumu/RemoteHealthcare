@@ -188,7 +188,7 @@ defineExpose({ showAddModal });
                   type="submit"
                   status="primary"
                   content="提交"
-                ></vxe-button>
+                />
               </div>
             </template>
           </vxe-form-view>

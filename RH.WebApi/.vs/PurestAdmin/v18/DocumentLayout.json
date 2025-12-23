@@ -3,8 +3,40 @@
   "WorkspaceRootPath": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcpatientpackservices\\rcpatientpackservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcpatientpackservices\\rcpatientpackservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcrtcservices\\rcconsultationrtcservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcrtcservices\\rcconsultationrtcservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcsynctaskservices\\rcsynctaskservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcsynctaskservices\\rcsynctaskservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcconsultationservices\\rcconsultationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcconsultationservices\\rcconsultationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcconsultationreportservices\\rcconsultationreportservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcconsultationreportservices\\rcconsultationreportservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcpatientcaseservices\\rcpatientcaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcpatientcaseservices\\rcpatientcaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcconsultationevaluationservices\\rcconsultationevaluationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcconsultationevaluationservices\\rcconsultationevaluationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcconsultationmemberservices\\rcconsultationmemberservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcconsultationmemberservices\\rcconsultationmemberservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|d:\\work\\remotehealthcare\\rh.webapi\\purestadmin.application\\rcconsultationtimelineservices\\rcconsultationtimelineservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C0E0D16E-704E-4D86-AC86-F20BB00FCD46}|PurestAdmin.Application\\PurestAdmin.Application.csproj|solutionrelative:purestadmin.application\\rcconsultationtimelineservices\\rcconsultationtimelineservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{CDB69081-999B-4A86-8537-FB400C92C0F6}|Python.SFUServer\\Python.SFUServer.pyproj|D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
@@ -22,23 +54,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 12,
           "Children": [
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
               "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
             },
             {
               "$type": "Bookmark",
@@ -47,6 +67,14 @@
             {
               "$type": "Bookmark",
               "Name": "ST:131:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
             },
             {
               "$type": "Bookmark",
@@ -65,21 +93,133 @@
               "Name": "ST:134:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "RcSyncTaskService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcSyncTaskServices\\RcSyncTaskService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcSyncTaskServices\\RcSyncTaskService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcSyncTaskServices\\RcSyncTaskService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcSyncTaskServices\\RcSyncTaskService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T10:15:42.196Z",
+              "EditorCaption": ""
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "RcPatientPackService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcPatientPackServices\\RcPatientPackService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcPatientPackServices\\RcPatientPackService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcPatientPackServices\\RcPatientPackService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcPatientPackServices\\RcPatientPackService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T10:13:07.828Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "RcPatientCaseService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcPatientCaseServices\\RcPatientCaseService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcPatientCaseServices\\RcPatientCaseService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcPatientCaseServices\\RcPatientCaseService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcPatientCaseServices\\RcPatientCaseService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T10:13:00.654Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "RcConsultationEvaluationService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationEvaluationServices\\RcConsultationEvaluationService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcConsultationEvaluationServices\\RcConsultationEvaluationService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationEvaluationServices\\RcConsultationEvaluationService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcConsultationEvaluationServices\\RcConsultationEvaluationService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T10:12:55.647Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "RcConsultationMemberService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationMemberServices\\RcConsultationMemberService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcConsultationMemberServices\\RcConsultationMemberService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationMemberServices\\RcConsultationMemberService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcConsultationMemberServices\\RcConsultationMemberService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T10:12:52.572Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RcConsultationService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationServices\\RcConsultationService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcConsultationServices\\RcConsultationService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationServices\\RcConsultationService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcConsultationServices\\RcConsultationService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T10:12:34.461Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "RcConsultationReportService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationReportServices\\RcConsultationReportService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcConsultationReportServices\\RcConsultationReportService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationReportServices\\RcConsultationReportService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcConsultationReportServices\\RcConsultationReportService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T10:07:40.494Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "RcConsultationTimelineService.cs",
+              "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationTimelineServices\\RcConsultationTimelineService.cs",
+              "RelativeDocumentMoniker": "PurestAdmin.Application\\RcConsultationTimelineServices\\RcConsultationTimelineService.cs",
+              "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcConsultationTimelineServices\\RcConsultationTimelineService.cs",
+              "RelativeToolTip": "PurestAdmin.Application\\RcConsultationTimelineServices\\RcConsultationTimelineService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T10:03:41.948Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "RcConsultationRtcService.cs",
               "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcRtcServices\\RcConsultationRtcService.cs",
               "RelativeDocumentMoniker": "PurestAdmin.Application\\RcRtcServices\\RcConsultationRtcService.cs",
               "ToolTip": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\PurestAdmin.Application\\RcRtcServices\\RcConsultationRtcService.cs",
               "RelativeToolTip": "PurestAdmin.Application\\RcRtcServices\\RcConsultationRtcService.cs",
-              "ViewState": "AgIAABgAAAAAAAAAAAA0wCsAAAAEAAAAAAAAAA==",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAABYAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-26T06:17:28.12Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 9,
               "Title": "README.md",
               "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\README.md",
               "RelativeDocumentMoniker": "Python.SFUServer\\README.md",
@@ -87,12 +227,11 @@
               "RelativeToolTip": "Python.SFUServer\\README.md",
               "ViewState": "AgIAAAkAAAAAAAAAAAAAAAgAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2025-11-26T06:12:31.532Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-26T06:12:31.532Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 10,
               "Title": "requirements.txt",
               "DocumentMoniker": "D:\\Work\\RemoteHealthcare\\RH.WebApi\\Python.SFUServer\\requirements.txt",
               "RelativeDocumentMoniker": "Python.SFUServer\\requirements.txt",
@@ -100,8 +239,7 @@
               "RelativeToolTip": "Python.SFUServer\\requirements.txt",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2025-11-26T06:12:20.085Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-26T06:12:20.085Z"
             }
           ]
         }

@@ -29,14 +29,23 @@ export const deletePatientPack = (id: number) =>
   http.request<ApiResponse<void>>("delete", `${modulePrefix}/${id}`);
 
 export const getPatientPackFiles = (id: number) =>
-  http.request<ApiResponse<PatientPackFile[]>>("get", `${modulePrefix}/${id}/files`);
+  http.request<ApiResponse<PatientPackFile[]>>(
+    "get",
+    `${modulePrefix}/${id}/files`
+  );
 
 export const uploadPatientPackFile = (id: number, data: FormData) =>
-  http.request<ApiResponse<PatientPackFile>>("post", `${modulePrefix}/${id}/files`, {
-    data,
-    headers: { "Content-Type": "multipart/form-data" }
-  });
+  http.request<ApiResponse<PatientPackFile>>(
+    "post",
+    `${modulePrefix}/${id}/files`,
+    {
+      data,
+      headers: { "Content-Type": "multipart/form-data" }
+    }
+  );
 
 export const deletePatientPackFile = (packId: number, fileId: number) =>
-  http.request<ApiResponse<void>>("delete", `${modulePrefix}/${packId}/files/${fileId}`);
-
+  http.request<ApiResponse<void>>(
+    "delete",
+    `${modulePrefix}/${packId}/files/${fileId}`
+  );

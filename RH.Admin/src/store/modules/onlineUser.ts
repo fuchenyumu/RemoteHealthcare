@@ -5,7 +5,7 @@ import { createConnection } from "@/utils/signalr";
 interface ISignalrState {
   connection?: HubConnection;
 }
-export const useOnlineUserStore = defineStore('purest-onlineUser', {
+export const useOnlineUserStore = defineStore("purest-onlineUser", {
   state: (): ISignalrState => ({}),
   getters: {
     getConnection(state) {

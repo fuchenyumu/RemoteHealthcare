@@ -28,4 +28,4 @@ export const lock = (id: number) => {
 
 export const getDefinitions = (): Promise<Array<any>> => {
   return http.request("get", "/definition/definitions");
-}
+};

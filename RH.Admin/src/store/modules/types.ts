@@ -41,4 +41,3 @@ export type UserInfoType = {
   account?: string;
   permissions?: string[];
 };
-

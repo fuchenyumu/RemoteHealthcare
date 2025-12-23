@@ -40,6 +40,6 @@ export default {
         permissions: ["workflow.auditing"]
       },
       component: () => import("@/views/workflow/instance/Auditing.vue")
-    },
+    }
   ]
 } satisfies RouteConfigsTable;

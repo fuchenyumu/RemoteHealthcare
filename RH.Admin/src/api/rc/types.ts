@@ -11,6 +11,8 @@ export interface ConsultationQuery extends PagingQuery {
   targetOrgId?: number;
   createTimeStart?: string;
   createTimeEnd?: string;
+  scheduledStartTimeStart?: string;
+  scheduledStartTimeEnd?: string;
 }
 
 export interface ConsultationSummary {
@@ -247,4 +249,3 @@ export interface PagedResult<T> {
   pageCount: number;
   items: T[];
 }
-

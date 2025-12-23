@@ -27,12 +27,11 @@ public class RcConsultationReportService(ISqlSugarClient db, ICurrentUser curren
             query = query.Where(x => x.ReportStatus == input.ReportStatus);
         }
 
-        var paged = await query
+        var pagedEntity = await query
             .OrderBy(x => x.CreateTime, OrderByType.Desc)
-            .Select(x => x.Adapt<RcConsultationReportDetailOutput>())
             .ToPurestPagedListAsync(input.PageIndex, input.PageSize);
 
-        return paged;
+        return pagedEntity.Adapt<PagedList<RcConsultationReportDetailOutput>>();
     }
 
     /// <summary>

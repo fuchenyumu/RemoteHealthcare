@@ -1,5 +1,10 @@
 ﻿import { http } from "@/utils/http";
-import type { SyncTaskQuery, SyncTaskItem, PagedResult, ApiResponse } from "./types";
+import type {
+  SyncTaskQuery,
+  SyncTaskItem,
+  PagedResult,
+  ApiResponse
+} from "./types";
 
 const modulePrefix = "/rc-sync-task";
 
@@ -21,4 +26,3 @@ export const updateSyncTask = (id: number, data: any) =>
 
 export const deleteSyncTask = (id: number) =>
   http.request<ApiResponse<void>>("delete", `${modulePrefix}/${id}`);
-

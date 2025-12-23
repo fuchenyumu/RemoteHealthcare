@@ -16,5 +16,7 @@ export const getTimelinePage = (params: ConsultationTimelineQuery) =>
   );
 
 export const getTimeline = (id: number) =>
-  http.request<ApiResponse<ConsultationTimeline>>("get", `${modulePrefix}/${id}`);
-
+  http.request<ApiResponse<ConsultationTimeline>>(
+    "get",
+    `${modulePrefix}/${id}`
+  );

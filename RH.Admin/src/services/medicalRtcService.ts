@@ -8,7 +8,12 @@ import type {
 } from "@/api/rc/types";
 
 type ConnectionState = "idle" | "connecting" | "connected" | "error";
-type MediaPermissionState = "unknown" | "granted" | "audio-only" | "denied" | "unsupported";
+type MediaPermissionState =
+  | "unknown"
+  | "granted"
+  | "audio-only"
+  | "denied"
+  | "unsupported";
 
 interface MedicalRtcSessionOptions {
   iceServers?: RTCIceServer[];
@@ -20,7 +25,7 @@ interface RemoteStreamRef {
   stream: MediaStream;
 }
 
-const unwrap = <T,>(resp: ApiResponse<T> | T): T => {
+const unwrap = <T>(resp: ApiResponse<T> | T): T => {
   if (resp && typeof resp === "object" && "data" in (resp as ApiResponse<T>)) {
     return (resp as ApiResponse<T>).data;
   }
@@ -35,14 +40,84 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
   const currentToken = ref<RtcTokenResponse | null>(null);
   const errorMessage = ref("");
   const mediaPermission = ref<MediaPermissionState>("unknown");
+  const reconnecting = ref(false);
+  const reconnectAttempts = ref(0);
 
   const remoteStreamMap = new Map<string, MediaStream>();
   const peerConnections = new Map<string, RTCPeerConnection>();
 
   let websocket: WebSocket | null = null;
   let pingTimer: number | null = null;
+  let reconnectTimer: number | null = null;
+  let desiredConsultationId: number | null = null;
+  let manualClose = false;
+  let allowAutoReconnect = false;
 
-  async function join(consultationId: number, forceRefresh = false) {
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const BASE_RECONNECT_DELAY_MS = 1000;
+  const MAX_RECONNECT_DELAY_MS = 15000;
+
+  function clearReconnectTimer() {
+    if (reconnectTimer) {
+      window.clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+  }
+
+  function resetPeers() {
+    peerConnections.forEach(pc => pc.close());
+    peerConnections.clear();
+    remoteStreamMap.clear();
+    updateRemoteStreams();
+    participants.value = [];
+  }
+
+  function scheduleReconnect(reason = "连接已断开") {
+    if (!allowAutoReconnect || manualClose) return;
+    if (!desiredConsultationId) return;
+    if (reconnectTimer) return;
+
+    if (reconnectAttempts.value >= MAX_RECONNECT_ATTEMPTS) {
+      reconnecting.value = false;
+      errorMessage.value = `${reason}，已停止自动重连，请点击“加入会诊”重试`;
+      connectionState.value = "error";
+      return;
+    }
+
+    const attempt = reconnectAttempts.value + 1;
+    const delay = Math.min(
+      MAX_RECONNECT_DELAY_MS,
+      BASE_RECONNECT_DELAY_MS * Math.pow(2, reconnectAttempts.value)
+    );
+
+    reconnecting.value = true;
+    errorMessage.value = `${reason}，${Math.max(1, Math.round(delay / 1000))}秒后自动重连（${attempt}/${MAX_RECONNECT_ATTEMPTS}）...`;
+
+    reconnectTimer = window.setTimeout(async () => {
+      reconnectTimer = null;
+      reconnectAttempts.value = attempt;
+      try {
+        // 连续失败后强制刷新 token
+        const forceRefresh = attempt >= 3;
+        await doJoin(desiredConsultationId as number, forceRefresh, true);
+        reconnecting.value = false;
+        if (
+          errorMessage.value.includes("自动重连") ||
+          errorMessage.value.includes("重连")
+        ) {
+          errorMessage.value = "";
+        }
+      } catch {
+        scheduleReconnect("重连失败");
+      }
+    }, delay);
+  }
+
+  async function doJoin(
+    consultationId: number,
+    forceRefresh = false,
+    isReconnect = false
+  ) {
     if (connectionState.value === "connecting") return;
     if (connectionState.value === "connected" && currentToken.value?.roomId) {
       if (currentToken.value.roomId === `rc-${consultationId}`) {
@@ -52,9 +127,19 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     }
 
     try {
+      allowAutoReconnect = true;
+      desiredConsultationId = consultationId;
+      manualClose = false;
       connectionState.value = "connecting";
-      errorMessage.value = "";
-      const tokenResp = unwrap(await requestRtcToken(consultationId, { forceRefresh }));
+      if (!isReconnect) {
+        reconnectAttempts.value = 0;
+        reconnecting.value = false;
+        clearReconnectTimer();
+        errorMessage.value = "";
+      }
+      const tokenResp = unwrap(
+        await requestRtcToken(consultationId, { forceRefresh })
+      );
       currentToken.value = tokenResp;
       const hasMedia = await ensureLocalStream();
       await openWebSocket(tokenResp);
@@ -69,17 +154,23 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     }
   }
 
+  async function join(consultationId: number, forceRefresh = false) {
+    return doJoin(consultationId, forceRefresh, false);
+  }
+
   async function leave() {
+    allowAutoReconnect = false;
+    desiredConsultationId = null;
+    reconnecting.value = false;
+    reconnectAttempts.value = 0;
+    clearReconnectTimer();
+
     stopPing();
+    manualClose = true;
     websocket?.close();
     websocket = null;
 
-    peerConnections.forEach(pc => pc.close());
-    peerConnections.clear();
-
-    remoteStreamMap.clear();
-    updateRemoteStreams();
-    participants.value = [];
+    resetPeers();
     currentToken.value = null;
 
     if (localStream.value) {
@@ -88,6 +179,7 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     }
 
     connectionState.value = "idle";
+    manualClose = false;
   }
 
   async function toggleAudio() {
@@ -135,22 +227,26 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
   }
 
   function updateRemoteStreams() {
-    remoteStreams.value = Array.from(remoteStreamMap.entries()).map(([participantId, stream]) => ({
-      participantId,
-      stream
-    }));
+    remoteStreams.value = Array.from(remoteStreamMap.entries()).map(
+      ([participantId, stream]) => ({
+        participantId,
+        stream
+      })
+    );
   }
 
   async function ensureLocalStream(): Promise<boolean> {
     if (localStream.value) return true;
     const constraints = options?.mediaConstraints ?? defaultConstraints(true);
     try {
-      localStream.value = await navigator.mediaDevices.getUserMedia(constraints);
+      localStream.value =
+        await navigator.mediaDevices.getUserMedia(constraints);
       mediaPermission.value = constraints.video ? "granted" : "audio-only";
       return true;
     } catch (error: any) {
       console.warn("Failed to get media stream:", error);
-      const fallbackAudio = constraints.audio ?? defaultConstraints(false).audio;
+      const fallbackAudio =
+        constraints.audio ?? defaultConstraints(false).audio;
       // 摄像头不可用时尝试仅音频加入
       if (constraints.video) {
         try {
@@ -171,14 +267,18 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     }
   }
 
-  async function requestMediaPermissions(videoPreferred = true): Promise<boolean> {
+  async function requestMediaPermissions(
+    videoPreferred = true
+  ): Promise<boolean> {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       mediaPermission.value = "unsupported";
       errorMessage.value = "当前浏览器不支持音视频权限";
       return false;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(defaultConstraints(videoPreferred));
+      const stream = await navigator.mediaDevices.getUserMedia(
+        defaultConstraints(videoPreferred)
+      );
       stream.getTracks().forEach(track => track.stop());
       mediaPermission.value = videoPreferred ? "granted" : "audio-only";
       errorMessage.value = "";
@@ -190,7 +290,11 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     }
   }
 
-  const hasMediaPermissions = computed(() => mediaPermission.value === "granted" || mediaPermission.value === "audio-only");
+  const hasMediaPermissions = computed(
+    () =>
+      mediaPermission.value === "granted" ||
+      mediaPermission.value === "audio-only"
+  );
 
   function defaultConstraints(enableVideo: boolean): MediaStreamConstraints {
     return {
@@ -251,7 +355,14 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
       websocket.onmessage = handleSocketMessage;
       websocket.onclose = () => {
         stopPing();
+        resetPeers();
+        websocket = null;
+        if (manualClose || !allowAutoReconnect) {
+          connectionState.value = "idle";
+          return;
+        }
         connectionState.value = "idle";
+        scheduleReconnect("连接已断开");
       };
     });
   }
@@ -267,7 +378,9 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
         break;
       case "PARTICIPANT_JOINED":
         if (payload.participant) {
-          const exists = participants.value.some(p => p.participantId === payload.participant.participantId);
+          const exists = participants.value.some(
+            p => p.participantId === payload.participant.participantId
+          );
           if (!exists) {
             participants.value = [...participants.value, payload.participant];
           }
@@ -278,7 +391,9 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
         break;
       case "PARTICIPANT_LEFT":
         if (payload.participantId) {
-          participants.value = participants.value.filter(p => p.participantId !== payload.participantId);
+          participants.value = participants.value.filter(
+            p => p.participantId !== payload.participantId
+          );
           closePeerConnection(payload.participantId);
         }
         break;
@@ -320,7 +435,10 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     sendSignal("OFFER", targetId, { sdp: offer.sdp, type: offer.type });
   }
 
-  async function handleRemoteOffer(fromId: string, payload: RTCSessionDescriptionInit) {
+  async function handleRemoteOffer(
+    fromId: string,
+    payload: RTCSessionDescriptionInit
+  ) {
     const pc = await getOrCreatePeerConnection(fromId);
     await pc.setRemoteDescription(new RTCSessionDescription(payload));
     const answer = await pc.createAnswer();
@@ -328,13 +446,19 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     sendSignal("ANSWER", fromId, { sdp: answer.sdp, type: answer.type });
   }
 
-  async function handleRemoteAnswer(fromId: string, payload: RTCSessionDescriptionInit) {
+  async function handleRemoteAnswer(
+    fromId: string,
+    payload: RTCSessionDescriptionInit
+  ) {
     const pc = peerConnections.get(fromId);
     if (!pc) return;
     await pc.setRemoteDescription(new RTCSessionDescription(payload));
   }
 
-  async function handleRemoteCandidate(fromId: string, payload: RTCIceCandidateInit) {
+  async function handleRemoteCandidate(
+    fromId: string,
+    payload: RTCIceCandidateInit
+  ) {
     const pc = peerConnections.get(fromId);
     if (!pc) return;
     if (payload.candidate) {
@@ -348,7 +472,9 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     }
 
     const pc = new RTCPeerConnection({
-      iceServers: options?.iceServers ?? [{ urls: "stun:stun.l.google.com:19302" }]
+      iceServers: options?.iceServers ?? [
+        { urls: "stun:stun.l.google.com:19302" }
+      ]
     });
 
     pc.onicecandidate = event => {
@@ -371,7 +497,11 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     };
 
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === "failed" || pc.connectionState === "closed" || pc.connectionState === "disconnected") {
+      if (
+        pc.connectionState === "failed" ||
+        pc.connectionState === "closed" ||
+        pc.connectionState === "disconnected"
+      ) {
         closePeerConnection(participantId);
       }
     };
@@ -398,7 +528,11 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     }
   }
 
-  function sendSignal(type: string, targetId: string, payload: Record<string, unknown>) {
+  function sendSignal(
+    type: string,
+    targetId: string,
+    payload: Record<string, unknown>
+  ) {
     if (!websocket || websocket.readyState !== WebSocket.OPEN) return;
     websocket.send(
       JSON.stringify({
@@ -441,6 +575,8 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     errorMessage,
     mediaPermission,
     hasMediaPermissions,
+    reconnecting,
+    reconnectAttempts,
     join,
     leave,
     toggleAudio,
@@ -449,5 +585,3 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     requestMediaPermissions
   };
 }
-
-

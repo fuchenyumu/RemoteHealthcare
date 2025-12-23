@@ -3,7 +3,10 @@ import type { ConsultationReport, PagedResult, ApiResponse } from "./types";
 
 const modulePrefix = "/rc-consultation-report";
 
-export const getReportPage = (params: { consultationId: number; reportStatus?: string }) =>
+export const getReportPage = (params: {
+  consultationId: number;
+  reportStatus?: string;
+}) =>
   http.request<ApiResponse<PagedResult<ConsultationReport>>>(
     "get",
     modulePrefix,
@@ -24,8 +27,7 @@ export const signReport = (data: {
   signerId: number;
   signatureFileId?: number;
   remark?: string;
-}) =>
-  http.request<ApiResponse<void>>("post", `${modulePrefix}/sign`, { data });
+}) => http.request<ApiResponse<void>>("post", `${modulePrefix}/sign`, { data });
 
 export const deleteReport = (id: number) =>
   http.request<ApiResponse<void>>("delete", `${modulePrefix}/${id}`);

@@ -32,6 +32,7 @@ import {
   updateReport,
   signReport
 } from "@/api/rc/report";
+import { getEvaluationPage, type RcEvaluation } from "@/api/rc/evaluation";
 import { getPatientCasePage, getPatientCaseDetail } from "@/api/rc/patientCase";
 import { getPatientPackPage } from "@/api/rc/patientPack";
 import { getPageList as getUserPageList } from "@/api/system/user";
@@ -43,6 +44,7 @@ import type { HubConnection } from "@microsoft/signalr";
 import { getDictionaryDataByCode } from "@/api/system/dictionary";
 import { getConsultationStatsOverview } from "@/api/rc/consultation";
 import MedicalRtcConference from "../rtc/MedicalRtcConference.vue";
+import stampUrl from "@/assets/demo/stamp.svg";
 import { useUserStoreHook } from "@/store/modules/user";
 import type {
   ConsultationSummary,
@@ -65,20 +67,42 @@ const attachmentData = ref<ConsultationAttachment[]>([]);
 const memberData = ref<ConsultationMember[]>([]);
 const timelineData = ref<ConsultationTimeline[]>([]);
 const reportData = ref<ConsultationReport | null>(null);
+const evaluationData = ref<RcEvaluation[]>([]);
+
+const qrDialogVisible = ref(false);
+const qrUrl = ref("");
+const openEvaluationQR = (id: number) => {
+  // 演示环境，指向 H5 项目的开发端口 5174
+  const url = `${window.location.protocol}//${window.location.hostname}:5174/evaluation/${id}`;
+  // 使用公开 API 生成二维码
+  qrUrl.value = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+  qrDialogVisible.value = true;
+};
 
 const dictSources = reactive({
   consultationStatus: [] as any[],
   emergencyLevel: [] as any[],
   packStatus: [] as any[],
   memberRole: [] as any[],
-  memberStatus: [] as any[]
+  memberStatus: [] as any[],
+  timelineEvent: [] as any[]
 });
 
-const overviewStats = ref<{ total: number; today: number; pendingReview: number; finished: number } | null>(null);
+const overviewStats = ref<{
+  total: number;
+  today: number;
+  pendingReview: number;
+  finished: number;
+} | null>(null);
 const loadOverviewStats = async () => {
   try {
     const res = await getConsultationStatsOverview();
-    const data = unwrap<{ total: number; today: number; pendingReview: number; finished: number }>(res);
+    const data = unwrap<{
+      total: number;
+      today: number;
+      pendingReview: number;
+      finished: number;
+    }>(res);
     overviewStats.value = data;
   } catch (e) {}
 };
@@ -132,6 +156,47 @@ const memberStatusMap = computed<Record<string, string>>(() => {
     : [];
   return Object.fromEntries(list.map(item => [item.code, item.name]));
 });
+
+const timelineEventMap = computed<Record<string, string>>(() => {
+  const list = Array.isArray(dictSources.timelineEvent)
+    ? dictSources.timelineEvent
+    : [];
+  return Object.fromEntries(list.map(item => [item.code, item.name]));
+});
+
+const timelineDescending = ref(false);
+const orderedTimelineData = computed(() => {
+  const list = Array.isArray(timelineData.value) ? [...timelineData.value] : [];
+  list.sort((a: any, b: any) => {
+    const ta = a?.createTime ? new Date(a.createTime).getTime() : 0;
+    const tb = b?.createTime ? new Date(b.createTime).getTime() : 0;
+    return timelineDescending.value ? tb - ta : ta - tb;
+  });
+  return list;
+});
+
+const timelineItemType = (code: string) => {
+  switch (code) {
+    case "SUBMITTED":
+      return "info";
+    case "APPROVED":
+      return "success";
+    case "REJECTED":
+      return "danger";
+    case "SCHEDULED":
+      return "warning";
+    case "STARTED":
+      return "primary";
+    case "ENDED":
+      return "info";
+    case "SIGNED":
+      return "success";
+    case "CLOSED":
+      return "danger";
+    default:
+      return "info";
+  }
+};
 
 const searchForm = reactive<ConsultationQuery>({
   pageIndex: 1,
@@ -201,6 +266,73 @@ const reportForm = reactive({
   followUpPlan: "",
   reportStatus: "DRAFT"
 });
+
+type ReportTemplate = {
+  key: string;
+  name: string;
+  summary: string;
+  diagnosis: string;
+  treatmentAdvice: string;
+  followUpPlan: string;
+};
+
+const reportTemplates: ReportTemplate[] = [
+  {
+    key: "OB_ULTRASOUND",
+    name: "孕产｜产前超声会诊",
+    summary:
+      "主诉：孕中期超声提示异常回声，申请远程会诊。\n病史摘要：既往史无特殊，孕期随访规律。\n检查要点：胎儿结构筛查、羊水指数、胎盘位置。",
+    diagnosis:
+      "初步考虑：胎儿结构异常待排（建议结合系统超声/胎儿心超）。\n鉴别诊断：发育变异、伪影、局灶性钙化。",
+    treatmentAdvice:
+      "1) 建议48-72小时内复查高分辨率超声；\n2) 必要时完善胎儿心超/产前筛查；\n3) 加强孕期随访与风险宣教。",
+    followUpPlan:
+      "随访：1周内复诊；若出现腹痛/出血等症状及时就医。\n资料补充：上传复查超声报告与关键切面截图。"
+  },
+  {
+    key: "PED_EMERGENCY",
+    name: "儿科｜急症评估",
+    summary:
+      "主诉：发热/咳嗽/精神差，申请远程会诊。\n病史摘要：起病急，近期有上呼吸道感染接触史。\n检查要点：生命体征、呼吸情况、血常规/CRP。",
+    diagnosis:
+      "初步考虑：社区获得性肺炎/支气管炎待排。\n风险提示：需警惕重症肺炎、败血症风险。",
+    treatmentAdvice:
+      "1) 建议完善胸片/肺超（若条件允许）；\n2) 经验性抗感染需结合年龄体重与过敏史；\n3) 加强补液与对症处理（退热、雾化等）。",
+    followUpPlan:
+      "随访：24小时内复评；出现呼吸困难/嗜睡/抽搐等立即转上级医院。\n资料补充：上传检验结果、影像截图与用药记录。"
+  },
+  {
+    key: "GENERAL",
+    name: "普通｜远程咨询",
+    summary:
+      "主诉：一般健康咨询/复诊评估。\n病史摘要：既往史/用药史详见病历资料。\n检查要点：本次主要问题与既往资料核对。",
+    diagnosis:
+      "初步判断：建议结合现有资料进一步评估。\n需补充：关键检验/影像资料。",
+    treatmentAdvice:
+      "1) 建议按规范补齐资料（检查报告、影像关键帧）；\n2) 对症处理与生活方式建议；\n3) 如症状加重及时线下就诊。",
+    followUpPlan: "随访：建议1-2周内复诊或按医嘱随访。"
+  }
+];
+
+const selectedReportTemplate = ref<string>("");
+const applyReportTemplate = async () => {
+  const tpl = reportTemplates.find(t => t.key === selectedReportTemplate.value);
+  if (!tpl) return;
+  Object.assign(reportForm, {
+    summary: tpl.summary,
+    diagnosis: tpl.diagnosis,
+    treatmentAdvice: tpl.treatmentAdvice,
+    followUpPlan: tpl.followUpPlan
+  });
+  // 落地到数据库：应用模板即保存为草稿
+  if (reportData.value && reportData.value.id) {
+    await updateReport(reportData.value.id, reportForm);
+  } else {
+    await saveReport(reportForm);
+  }
+  ElMessage.success(`已套用并同步保存草稿：${tpl.name}`);
+  if (detailData.value) await loadReport(detailData.value.id);
+};
 
 const rtcDrawerVisible = ref(false);
 const rtcConsultationId = ref<number | null>(null);
@@ -502,14 +634,11 @@ const openSchedule = (row: ConsultationSummary) => {
 };
 
 const submitSchedule = async () => {
-  await scheduleConsultation(
-    scheduleForm.consultationId,
-    {
-      scheduledStartTime: new Date(scheduleForm.scheduledStartTime).toISOString(),
-      scheduledEndTime: new Date(scheduleForm.scheduledEndTime).toISOString(),
-      meetingRoomNo: scheduleForm.meetingRoomNo
-    }
-  );
+  await scheduleConsultation(scheduleForm.consultationId, {
+    scheduledStartTime: new Date(scheduleForm.scheduledStartTime).toISOString(),
+    scheduledEndTime: new Date(scheduleForm.scheduledEndTime).toISOString(),
+    meetingRoomNo: scheduleForm.meetingRoomNo
+  });
   ElMessage.success("排期完成");
   scheduleDialogVisible.value = false;
   handleSearch();
@@ -591,7 +720,8 @@ const loadDetail = async (id: number) => {
       loadAttachments(id),
       loadMembers(id),
       loadTimeline(id),
-      loadReport(id)
+      loadReport(id),
+      loadEvaluation(id)
     ]);
   } finally {
     detailLoading.value = false;
@@ -624,6 +754,13 @@ const loadReport = async (consultationId: number) => {
     await getReportPage({ consultationId, reportStatus: "" })
   );
   reportData.value = list?.items?.[0] ?? null;
+};
+
+const loadEvaluation = async (consultationId: number) => {
+  const list = unwrap<PagedResult<RcEvaluation>>(
+    await getEvaluationPage({ consultationId })
+  );
+  evaluationData.value = list?.items ?? [];
 };
 
 const openSignalR = async (consultationId: number) => {
@@ -689,6 +826,7 @@ onUnmounted(async () => {
 
 const openReportEditor = () => {
   if (!detailData.value) return;
+  selectedReportTemplate.value = "";
   reportForm.consultationId = detailData.value.id;
   if (reportData.value) {
     Object.assign(reportForm, {
@@ -894,19 +1032,27 @@ const fetchUserOptions = async (
 };
 
 onMounted(async () => {
-  const [status, emergency, packStatus, memberRole, memberStatus] =
-    await Promise.all([
-      getDictionaryDataByCode("RC_CONSULT_STATUS"),
-      getDictionaryDataByCode("RC_EMERGENCY_LEVEL"),
-      getDictionaryDataByCode("RC_PACK_STATUS"),
-      getDictionaryDataByCode("RC_MEMBER_ROLE"),
-      getDictionaryDataByCode("RC_MEMBER_STATUS")
-    ]);
+  const [
+    status,
+    emergency,
+    packStatus,
+    memberRole,
+    memberStatus,
+    timelineEvent
+  ] = await Promise.all([
+    getDictionaryDataByCode("RC_CONSULT_STATUS"),
+    getDictionaryDataByCode("RC_EMERGENCY_LEVEL"),
+    getDictionaryDataByCode("RC_PACK_STATUS"),
+    getDictionaryDataByCode("RC_MEMBER_ROLE"),
+    getDictionaryDataByCode("RC_MEMBER_STATUS"),
+    getDictionaryDataByCode("RC_TIMELINE_EVENT")
+  ]);
   dictSources.consultationStatus = unwrap<any[]>(status) ?? [];
   dictSources.emergencyLevel = unwrap<any[]>(emergency) ?? [];
   dictSources.packStatus = unwrap<any[]>(packStatus) ?? [];
   dictSources.memberRole = unwrap<any[]>(memberRole) ?? [];
   dictSources.memberStatus = unwrap<any[]>(memberStatus) ?? [];
+  dictSources.timelineEvent = unwrap<any[]>(timelineEvent) ?? [];
   await loadOverviewStats();
 });
 </script>
@@ -917,21 +1063,25 @@ onMounted(async () => {
       <div class="stats-row">
         <div class="stat-item">
           <div class="stat-label">总会诊数</div>
-          <div class="stat-value">{{ overviewStats?.total ?? '-' }}</div>
+          <div class="stat-value">{{ overviewStats?.total ?? "-" }}</div>
         </div>
         <div class="stat-item">
           <div class="stat-label">今日新增</div>
-          <div class="stat-value">{{ overviewStats?.today ?? '-' }}</div>
+          <div class="stat-value">{{ overviewStats?.today ?? "-" }}</div>
         </div>
         <div class="stat-item">
           <div class="stat-label">待审核</div>
-          <div class="stat-value">{{ overviewStats?.pendingReview ?? '-' }}</div>
+          <div class="stat-value">
+            {{ overviewStats?.pendingReview ?? "-" }}
+          </div>
         </div>
         <div class="stat-item">
           <div class="stat-label">已完成</div>
-          <div class="stat-value">{{ overviewStats?.finished ?? '-' }}</div>
+          <div class="stat-value">{{ overviewStats?.finished ?? "-" }}</div>
         </div>
-        <el-button type="primary" size="small" @click="loadOverviewStats">刷新</el-button>
+        <el-button type="primary" size="small" @click="loadOverviewStats"
+          >刷新</el-button
+        >
       </div>
     </el-card>
     <el-card shadow="never" class="query-card">
@@ -1346,12 +1496,17 @@ onMounted(async () => {
           >
           <el-button
             type="success"
-            :disabled="!currentUserId.value"
-            @click="() => submitSignReport(currentUserId.value)"
+            :disabled="!currentUserId"
+            @click="() => submitSignReport(currentUserId)"
             >签署报告</el-button
           >
           <el-button type="primary" @click="() => gotoRtcDemo(detailData)"
             >进入演示</el-button
+          >
+          <el-button
+            type="warning"
+            @click="() => openEvaluationQR(detailData.id)"
+            >生成评价码</el-button
           >
         </el-space>
 
@@ -1424,53 +1579,165 @@ onMounted(async () => {
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="流程轨迹">
-            <el-table :data="timelineData" border>
-              <el-table-column prop="eventCode" label="事件" min-width="120" />
-              <el-table-column
-                prop="eventContent"
-                label="内容"
-                min-width="200"
+            <div class="timeline-toolbar">
+              <el-switch
+                v-model="timelineDescending"
+                active-text="倒序"
+                inactive-text="正序"
               />
-              <el-table-column
-                prop="createByName"
-                label="操作人"
-                min-width="120"
-              />
-              <el-table-column prop="createTime" label="时间" min-width="160" />
-            </el-table>
+            </div>
+            <el-empty
+              v-if="orderedTimelineData.length === 0"
+              description="暂无轨迹"
+            />
+            <el-timeline v-else>
+              <el-timeline-item
+                v-for="item in orderedTimelineData"
+                :key="item.id"
+                :timestamp="item.createTime"
+                :type="timelineItemType(item.eventCode)"
+              >
+                <div class="timeline-item">
+                  <div class="timeline-item__header">
+                    <el-tag
+                      :type="timelineItemType(item.eventCode)"
+                      size="small"
+                    >
+                      {{ timelineEventMap[item.eventCode] ?? item.eventCode }}
+                    </el-tag>
+                    <span class="timeline-item__content">
+                      {{ item.eventContent || "-" }}
+                    </span>
+                  </div>
+                  <div class="timeline-item__meta">
+                    {{ item.createByName || "-" }}
+                  </div>
+                </div>
+              </el-timeline-item>
+            </el-timeline>
           </el-tab-pane>
           <el-tab-pane label="报告">
-            <el-descriptions v-if="reportData" :column="1" border>
-              <el-descriptions-item label="总结">{{
-                reportData.summary
-              }}</el-descriptions-item>
-              <el-descriptions-item label="诊断">{{
-                reportData.diagnosis
-              }}</el-descriptions-item>
-              <el-descriptions-item label="治疗建议">{{
-                reportData.treatmentAdvice
-              }}</el-descriptions-item>
-              <el-descriptions-item label="随访计划">{{
-                reportData.followUpPlan
-              }}</el-descriptions-item>
-              <el-descriptions-item label="状态">{{
-                reportData.reportStatus
-              }}</el-descriptions-item>
-              <el-descriptions-item label="签署人">{{
-                reportData.signerName
-              }}</el-descriptions-item>
-              <el-descriptions-item label="时间">{{
-                reportData.signedTime
-              }}</el-descriptions-item>
-            </el-descriptions>
+            <div v-if="reportData" class="report-view">
+              <el-descriptions :column="1" border>
+                <el-descriptions-item label="总结">{{
+                  reportData.summary
+                }}</el-descriptions-item>
+                <el-descriptions-item label="诊断">{{
+                  reportData.diagnosis
+                }}</el-descriptions-item>
+                <el-descriptions-item label="治疗建议">{{
+                  reportData.treatmentAdvice
+                }}</el-descriptions-item>
+                <el-descriptions-item label="随访计划">{{
+                  reportData.followUpPlan
+                }}</el-descriptions-item>
+                <el-descriptions-item label="状态">{{
+                  reportData.reportStatus
+                }}</el-descriptions-item>
+                <el-descriptions-item label="签署人">{{
+                  reportData.signerName
+                }}</el-descriptions-item>
+                <el-descriptions-item label="时间">{{
+                  reportData.signedTime
+                }}</el-descriptions-item>
+              </el-descriptions>
+              <img
+                v-if="['SIGNED', 'ARCHIVED'].includes(reportData.reportStatus)"
+                class="report-stamp"
+                :src="stampUrl"
+                alt="signed"
+              />
+            </div>
             <div v-else class="empty-report">暂无报告信息</div>
+          </el-tab-pane>
+          <el-tab-pane label="评价反馈">
+            <el-empty
+              v-if="evaluationData.length === 0"
+              description="暂无评价"
+            />
+            <div v-else class="evaluation-list">
+              <el-card
+                v-for="item in evaluationData"
+                :key="item.id"
+                shadow="never"
+                class="mb-3"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold">{{ item.patientName }}</span>
+                    <el-rate
+                      v-model="item.score"
+                      disabled
+                      show-score
+                      text-color="#ff9900"
+                    />
+                  </div>
+                  <span class="text-xs text-gray-400">{{
+                    item.createTime
+                  }}</span>
+                </div>
+                <div class="mb-2">
+                  <el-tag
+                    v-for="tag in item.tags.split(',')"
+                    v-show="tag"
+                    :key="tag"
+                    size="small"
+                    class="mr-1"
+                  >
+                    {{ tag }}
+                  </el-tag>
+                </div>
+                <p class="text-sm text-gray-600">
+                  {{ item.content || "无详细意见" }}
+                </p>
+              </el-card>
+            </div>
           </el-tab-pane>
         </el-tabs>
       </template>
     </el-drawer>
 
+    <el-dialog
+      v-model="qrDialogVisible"
+      title="患者评价二维码（手机扫码）"
+      width="300px"
+      align-center
+    >
+      <div class="flex flex-col items-center">
+        <img :src="qrUrl" alt="QR Code" style="width: 200px; height: 200px" />
+        <p class="mt-4 text-xs text-gray-500 text-center">
+          请提示患者使用手机扫码填写会诊评价
+        </p>
+      </div>
+    </el-dialog>
+
     <el-drawer v-model="reportDrawerVisible" title="编辑会诊报告" size="40%">
       <el-form :model="reportForm" label-width="120px">
+        <el-form-item label="模板">
+          <div class="flex items-center gap-2 w-full">
+            <el-select
+              v-model="selectedReportTemplate"
+              placeholder="选择模板（演示用）"
+              style="flex: 1"
+              clearable
+            >
+              <el-option
+                v-for="tpl in reportTemplates"
+                :key="tpl.key"
+                :label="tpl.name"
+                :value="tpl.key"
+              />
+            </el-select>
+            <el-button
+              type="primary"
+              plain
+              :disabled="!selectedReportTemplate"
+              @click="applyReportTemplate"
+            >
+              一键填充
+            </el-button>
+          </div>
+        </el-form-item>
         <el-form-item label="摘要">
           <el-input v-model="reportForm.summary" type="textarea" rows="3" />
         </el-form-item>
@@ -1533,6 +1800,42 @@ onMounted(async () => {
 .empty-report {
   padding: 16px;
   color: var(--el-color-info);
+}
+
+.report-view {
+  position: relative;
+}
+
+.report-stamp {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 150px;
+  opacity: 0.9;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
+.timeline-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 16px;
+}
+
+.timeline-item__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-item__content {
+  color: var(--el-text-color-regular);
+}
+
+.timeline-item__meta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 
 .stats-row {

@@ -62,8 +62,7 @@ defineExpose({ showViewModal });
         ref="formViewRef"
         v-model="workflowFormData"
         :config="designConfig"
-      >
-      </vxe-form-view>
+      />
     </el-card>
     <el-card shadow="never" body-class="card-padding" class="table-card">
       <el-timeline style="padding-top: 20px" placement="top">
@@ -84,8 +83,7 @@ defineExpose({ showViewModal });
               <vxe-text
                 :content="pointer.stepName"
                 :status="pointer.status == 3 ? `success` : `warning`"
-              >
-              </vxe-text>
+              />
             </template>
             <vxe-table
               v-if="pointer.status == 3"
@@ -93,9 +91,9 @@ defineExpose({ showViewModal });
               :data="pointer.auditingRecords"
               :min-height="0"
             >
-              <vxe-column field="auditingTime" title="审批时间"></vxe-column>
-              <vxe-column field="auditorName" title="审批人"></vxe-column>
-              <vxe-column field="auditingOpinion" title="审批意见"></vxe-column>
+              <vxe-column field="auditingTime" title="审批时间" />
+              <vxe-column field="auditorName" title="审批人" />
+              <vxe-column field="auditingOpinion" title="审批意见" />
               <vxe-column field="auditingResult" title="审批结果">
                 <template #default="{ row }">
                   <vxe-tag
@@ -103,13 +101,13 @@ defineExpose({ showViewModal });
                     status="success"
                     content="通过"
                     icon="vxe-icon-check-circle"
-                  ></vxe-tag>
+                  />
                   <vxe-tag
                     v-else
                     status="warning"
                     content="拒绝"
                     icon="vxe-icon-close-circle"
-                  ></vxe-tag>
+                  />
                 </template>
               </vxe-column>
             </vxe-table>
@@ -117,7 +115,7 @@ defineExpose({ showViewModal });
               v-else-if="pointer.status == 5"
               status="warning"
               content="待审批"
-            ></vxe-text>
+            />
           </el-card>
         </el-timeline-item>
       </el-timeline>

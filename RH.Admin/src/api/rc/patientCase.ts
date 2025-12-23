@@ -27,4 +27,3 @@ export const updatePatientCase = (id: number, data: any) =>
 
 export const deletePatientCase = (id: number) =>
   http.request<ApiResponse<void>>("delete", `${modulePrefix}/${id}`);
-

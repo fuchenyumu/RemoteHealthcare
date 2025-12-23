@@ -19,3 +19,22 @@ public class RcConsultationTrendItemOutput
     public string Date { get; set; }
     public int Count { get; set; }
 }
+
+/// <summary>
+/// 统计分布项
+/// </summary>
+public class RcConsultationDistributionOutput
+{
+    public string Name { get; set; }
+    public int Value { get; set; }
+}
+
+/// <summary>
+/// 专家排行项
+/// </summary>
+public class RcExpertRankingOutput
+{
+    public string Name { get; set; }
+    public int Count { get; set; }
+    public double AvgResponseHours { get; set; }
+}

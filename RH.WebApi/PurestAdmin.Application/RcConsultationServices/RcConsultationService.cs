@@ -80,6 +80,22 @@ public class RcConsultationService(ISqlSugarClient db, ICurrentUser currentUser)
             query = query.Where((consultation, patientCase, pack, applyDoctor, applyOrg, targetOrg, targetExpert, auditDoctor) => consultation.CreateTime <= end);
         }
 
+        // 排期中心：按排期开始时间过滤（只筛选已排期/进行中的会诊）
+        if (input.ScheduledStartTimeStart.HasValue)
+        {
+            query = query.Where((consultation, patientCase, pack, applyDoctor, applyOrg, targetOrg, targetExpert, auditDoctor) =>
+                consultation.ScheduledStartTime.HasValue &&
+                consultation.ScheduledStartTime.Value >= input.ScheduledStartTimeStart.Value);
+        }
+
+        if (input.ScheduledStartTimeEnd.HasValue)
+        {
+            var end = input.ScheduledStartTimeEnd.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where((consultation, patientCase, pack, applyDoctor, applyOrg, targetOrg, targetExpert, auditDoctor) =>
+                consultation.ScheduledStartTime.HasValue &&
+                consultation.ScheduledStartTime.Value <= end);
+        }
+
         var pagedList = await query
             .OrderBy((consultation, patientCase, pack, applyDoctor, applyOrg, targetOrg, targetExpert, auditDoctor) => consultation.CreateTime, OrderByType.Desc)
             .Select((consultation, patientCase, pack, applyDoctor, applyOrg, targetOrg, targetExpert, auditDoctor) => new RcConsultationSummaryOutput
@@ -410,6 +426,58 @@ public class RcConsultationService(ISqlSugarClient db, ICurrentUser currentUser)
         }
 
         return points;
+    }
+
+    /// <summary>
+    /// 统计分布
+    /// </summary>
+    public async Task<List<RcConsultationDistributionOutput>> GetDistributionAsync(string type)
+    {
+        if (type == "emergency")
+        {
+            return await _db.Queryable<RcConsultationEntity>()
+                .GroupBy(x => x.EmergencyLevel)
+                .Select(x => new RcConsultationDistributionOutput
+                {
+                    Name = x.EmergencyLevel,
+                    Value = SqlFunc.AggregateCount(x.Id)
+                })
+                .ToListAsync();
+        }
+        else if (type == "org")
+        {
+            return await _db.Queryable<RcConsultationEntity, OrganizationEntity>((c, o) => c.ApplyOrgId == o.Id)
+                .GroupBy((c, o) => o.Name)
+                .Select((c, o) => new RcConsultationDistributionOutput
+                {
+                    Name = o.Name,
+                    Value = SqlFunc.AggregateCount(c.Id)
+                })
+                .ToListAsync();
+        }
+        
+        return new List<RcConsultationDistributionOutput>();
+    }
+
+    /// <summary>
+    /// 专家排行
+    /// </summary>
+    public async Task<List<RcExpertRankingOutput>> GetExpertRankingAsync(int top = 5)
+    {
+        return await _db.Queryable<RcConsultationEntity, UserEntity>((c, u) => c.TargetExpertId == u.Id)
+            .Where((c, u) => c.ConsultationStatus == RemoteHealthcareConsts.ConsultationStatus.Finished)
+            .GroupBy((c, u) => u.Name)
+            .Select((c, u) => new RcExpertRankingOutput
+            {
+                Name = u.Name,
+                Count = SqlFunc.AggregateCount(c.Id),
+                AvgResponseHours = 2.5 // 演示用模拟值
+            })
+            // 多表查询 Select 投影后排序：先 MergeTable 转单表，避免别名不一致报错
+            .MergeTable()
+            .OrderByDescending(x => x.Count)
+            .Take(top)
+            .ToListAsync();
     }
 
     #region private helpers

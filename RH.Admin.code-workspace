@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "RH.AIDevPackage"
+		},
+		{
+			"path": "RH.H5APP"
 		}
 	]
 }

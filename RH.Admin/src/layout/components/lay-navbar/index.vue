@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { useNav } from "@/layout/hooks/useNav";
 import LaySearch from "../lay-search/index.vue";
 import LayNotice from "../lay-notice/index.vue";
@@ -6,10 +7,62 @@ import LayNavMix from "../lay-sidebar/NavMix.vue";
 import LaySidebarFullScreen from "../lay-sidebar/components/SidebarFullScreen.vue";
 import LaySidebarBreadCrumb from "../lay-sidebar/components/SidebarBreadCrumb.vue";
 import LaySidebarTopCollapse from "../lay-sidebar/components/SidebarTopCollapse.vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { useRouter } from "vue-router";
+import { useUserStoreHook } from "@/store/modules/user";
+import { usePermissionStoreHook } from "@/store/modules/permission";
+import { addPathMatch } from "@/router/utils";
+import { demoUsers, type DemoUser } from "@/config/demoUsers";
 
 import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import Setting from "~icons/ri/settings-3-line";
 import Edit from "~icons/ri/edit-2-line";
+import UserSharedLine from "~icons/ri/user-shared-2-line";
+
+const router = useRouter();
+const switchingDemo = ref(false);
+
+const switchDemoUser = async (user: DemoUser) => {
+  const currentAccount = useUserStoreHook()?.currentUser?.account ?? "";
+  if (currentAccount && currentAccount === user.account) {
+    ElMessage.info(`已是当前账号：${user.label}（${user.account}）`);
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确认切换为 ${user.label}（${user.account}）吗？\n切换后将刷新页面以应用新的权限与会诊角色。`,
+      "演示账号切换",
+      {
+        type: "warning",
+        confirmButtonText: "切换",
+        cancelButtonText: "取消"
+      }
+    );
+  } catch {
+    return;
+  }
+
+  switchingDemo.value = true;
+  try {
+    await useUserStoreHook().login({
+      account: user.account,
+      password: user.password
+    });
+    // 复用登录页逻辑：重新生成菜单/权限（当前项目以静态路由为主，传空数组即可）
+    usePermissionStoreHook().handleWholeMenus([]);
+    addPathMatch();
+
+    ElMessage.success(`已切换为：${user.label}`);
+    // 彻底刷新以清理页面内状态（SignalR/WebSocket/RTC等）并确保 token 生效
+    await router.replace({ path: "/remote/consultation" });
+    window.location.reload();
+  } catch (error: any) {
+    ElMessage.error(error?.message ?? "切换失败");
+  } finally {
+    switchingDemo.value = false;
+  }
+};
 const {
   layout,
   device,
@@ -55,7 +108,20 @@ const {
         </span>
         <template #dropdown>
           <el-dropdown-menu class="logout">
-            <el-dropdown-item @click="changePassword">
+            <el-dropdown-item disabled>
+              <IconifyIconOffline :icon="UserSharedLine" style="margin: 5px" />
+              演示账号
+            </el-dropdown-item>
+            <el-dropdown-item
+              v-for="user in demoUsers"
+              :key="user.key"
+              :disabled="switchingDemo"
+              @click="switchDemoUser(user)"
+            >
+              <IconifyIconOffline :icon="UserSharedLine" style="margin: 5px" />
+              {{ user.label }}
+            </el-dropdown-item>
+            <el-dropdown-item divided @click="changePassword">
               <IconifyIconOffline :icon="Edit" style="margin: 5px" />
               个人信息
             </el-dropdown-item>
@@ -129,7 +195,7 @@ const {
 }
 
 .logout {
-  width: 120px;
+  width: 150px;
 
   ::v-deep(.el-dropdown-menu__item) {
     display: inline-flex;

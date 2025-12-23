@@ -235,20 +235,20 @@ defineExpose({ getData, renderDesign });
 
 <template>
   <div>
-    <div id="lf-container" style="width: 100%; height: 600px" ref="container" />
-    <div class="business-div" v-if="showBusinessPanel">
+    <div id="lf-container" ref="container" style="width: 100%; height: 600px" />
+    <div v-if="showBusinessPanel" class="business-div">
       <el-card v-if="showAuditingNode">
-        <vxe-form :data="auditingData" :items="auditingColumns"></vxe-form>
+        <vxe-form :data="auditingData" :items="auditingColumns" />
       </el-card>
-      <el-card style="height: 100px" v-else>
+      <el-card v-else style="height: 100px">
         <el-row :span="24">
           <el-col :span="6">
             <vxe-select
+              v-model="judgedData.field"
               clearable
               filterable
               placement="top"
               :transfer="true"
-              v-model="judgedData.field"
               placeholder="请选择"
             >
               <vxe-option
@@ -256,7 +256,7 @@ defineExpose({ getData, renderDesign });
                 :key="c.field"
                 :value="c.field"
                 :label="c.title"
-              ></vxe-option>
+              />
             </vxe-select>
           </el-col>
           <el-col :span="6">
@@ -268,23 +268,23 @@ defineExpose({ getData, renderDesign });
               clearable
               filterable
             >
-              <vxe-option value="==" label="等于"></vxe-option>
-              <vxe-option value=">" label="大于"></vxe-option>
-              <vxe-option value="<" label="小于"></vxe-option>
-              <vxe-option value=">=" label="大于等于"></vxe-option>
-              <vxe-option value="<=" label="小于等于"></vxe-option>
-              <vxe-option value="!=" label="不等于"></vxe-option>
+              <vxe-option value="==" label="等于" />
+              <vxe-option value=">" label="大于" />
+              <vxe-option value="<" label="小于" />
+              <vxe-option value=">=" label="大于等于" />
+              <vxe-option value="<=" label="小于等于" />
+              <vxe-option value="!=" label="不等于" />
             </vxe-select>
           </el-col>
           <el-col :span="6">
-            <vxe-input v-model="judgedData.value" placeholder=""></vxe-input>
+            <vxe-input v-model="judgedData.value" placeholder="" />
           </el-col>
           <el-col :span="6">
             <vxe-button
               status="primary"
-              @click="setProperties('edge')"
               content="保存"
-            ></vxe-button>
+              @click="setProperties('edge')"
+            />
           </el-col>
         </el-row>
       </el-card>

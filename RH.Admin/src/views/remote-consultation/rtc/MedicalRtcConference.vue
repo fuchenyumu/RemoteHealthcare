@@ -3,8 +3,15 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ElButton, ElCard, ElMessage, ElTag } from "element-plus";
 
 import { getRtcRoom, getRtcRooms, getRtcServiceStatus } from "@/api/rc/rtc";
-import type { ApiResponse, RtcRoomStatus, RtcServiceStatus } from "@/api/rc/types";
+import { createAttachment } from "@/api/rc/attachment";
+import { submitData as uploadFile } from "@/api/system/profileSystem";
+import type {
+  ApiResponse,
+  RtcRoomStatus,
+  RtcServiceStatus
+} from "@/api/rc/types";
 import { useMedicalRtcSession } from "@/services/medicalRtcService";
+import RtcWhiteboard from "./components/RtcWhiteboard.vue";
 
 const props = defineProps<{
   consultationId: number;
@@ -17,6 +24,33 @@ const unwrap = <T,>(resp: ApiResponse<T> | T): T => {
   return resp as T;
 };
 
+const handleWhiteboardSave = async (blob: Blob) => {
+  try {
+    // 1. 上传文件到系统文件库
+    const formData = new FormData();
+    formData.append("file", blob, `whiteboard_${Date.now()}.png`);
+    formData.append("name", `会诊标注_${props.consultationId}`);
+
+    const uploadResp = unwrap(await uploadFile(formData));
+    const fileId = (uploadResp as any).id;
+
+    if (fileId) {
+      // 2. 关联到会诊附件
+      await createAttachment({
+        consultationId: props.consultationId,
+        fileId: fileId,
+        attachmentType: "WHITEBOARD",
+        sourceSystem: "RTC_CONSOLE",
+        description: "音视频会诊过程中的白板标注快照"
+      });
+      ElMessage.success("标注快照已保存至会诊附件");
+    }
+  } catch (error) {
+    console.error("Whiteboard save failed:", error);
+    ElMessage.error("保存失败，请检查网络");
+  }
+};
+
 const {
   connectionState,
   participants,
@@ -26,6 +60,8 @@ const {
   errorMessage,
   mediaPermission,
   hasMediaPermissions,
+  reconnecting,
+  reconnectAttempts,
   join,
   leave,
   toggleAudio,
@@ -55,11 +91,25 @@ const stateTagType = computed(() => {
   }
 });
 
-const handleJoin = async () => {
+const connectionText = computed(() => {
+  if (reconnecting.value) return "重连中";
+  switch (connectionState.value) {
+    case "connected":
+      return "已连接";
+    case "connecting":
+      return "连接中";
+    case "error":
+      return "异常";
+    default:
+      return "未连接";
+  }
+});
+
+const handleJoin = async (forceRefresh = false) => {
   if (!props.consultationId) return;
   try {
     joining.value = true;
-    await join(props.consultationId);
+    await join(props.consultationId, forceRefresh);
     await refreshRoomSnapshot();
   } catch (error: any) {
     ElMessage.error(error?.message ?? "加入失败");
@@ -73,13 +123,18 @@ const handleLeave = async () => {
   roomStatus.value = null;
 };
 
-const bindRemoteVideo = (el: HTMLVideoElement | null, participantId: string) => {
+const bindRemoteVideo = (
+  el: HTMLVideoElement | null,
+  participantId: string
+) => {
   if (!el) {
     remoteVideoRefs.delete(participantId);
     return;
   }
   remoteVideoRefs.set(participantId, el);
-  const stream = remoteStreams.value.find(item => item.participantId === participantId)?.stream ?? null;
+  const stream =
+    remoteStreams.value.find(item => item.participantId === participantId)
+      ?.stream ?? null;
   if (stream) {
     el.srcObject = stream;
   }
@@ -122,7 +177,10 @@ watch(connectionState, state => {
 });
 
 const participantName = (participantId: string) => {
-  return participants.value.find(item => item.participantId === participantId)?.displayName ?? participantId;
+  return (
+    participants.value.find(item => item.participantId === participantId)
+      ?.displayName ?? participantId
+  );
 };
 
 async function refreshServiceStatus() {
@@ -139,7 +197,9 @@ async function refreshRoomSnapshot() {
     if (token?.roomId) {
       roomStatus.value = unwrap(await getRtcRoom(token.roomId));
     } else {
-      const rooms = unwrap(await getRtcRooms({ consultationId: props.consultationId }));
+      const rooms = unwrap(
+        await getRtcRooms({ consultationId: props.consultationId })
+      );
       roomStatus.value = rooms[0] ?? null;
     }
   } catch {
@@ -183,14 +243,16 @@ onBeforeUnmount(() => {
             <div>音视频会诊</div>
             <div class="flex items-center gap-2">
               <span>连接状态：</span>
-              <el-tag :type="stateTagType">{{ connectionState }}</el-tag>
-              <span v-if="errorMessage" class="text-danger text-xs">{{ errorMessage }}</span>
+              <el-tag :type="stateTagType">{{ connectionText }}</el-tag>
+              <span v-if="errorMessage" class="text-danger text-xs">{{
+                errorMessage
+              }}</span>
             </div>
           </div>
         </template>
         <div class="video-grid">
           <div class="video-tile local">
-            <video ref="localVideoRef" autoplay playsinline muted></video>
+            <video ref="localVideoRef" autoplay playsinline muted />
             <div class="video-label">
               <span>本地</span>
             </div>
@@ -201,10 +263,10 @@ onBeforeUnmount(() => {
             class="video-tile"
           >
             <video
+              :ref="el => bindRemoteVideo(el, remote.participantId)"
               autoplay
               playsinline
-              :ref="el => bindRemoteVideo(el, remote.participantId)"
-            ></video>
+            />
             <div class="video-label">
               <span>{{ participantName(remote.participantId) }}</span>
             </div>
@@ -214,6 +276,15 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </el-card>
+
+      <el-card shadow="hover" class="rtc-console__whiteboard-card">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <div>协同标注（演示）</div>
+          </div>
+        </template>
+        <RtcWhiteboard @save="handleWhiteboardSave" />
+      </el-card>
     </section>
 
     <section class="rtc-console__sidebar">
@@ -221,12 +292,21 @@ onBeforeUnmount(() => {
         <template #header>
           <div class="flex items-center justify-between">
             <span>房间状态</span>
-            <el-tag v-if="roomStatus?.state" size="small">{{ roomStatus.state }}</el-tag>
+            <el-tag v-if="roomStatus?.state" size="small">{{
+              roomStatus.state
+            }}</el-tag>
           </div>
         </template>
         <ul class="status-list">
           <li>房间号：{{ roomStatus?.roomId ?? "未加入" }}</li>
           <li>在线成员：{{ roomStatus?.participantCount ?? 0 }}</li>
+          <li>
+            自动重连：{{
+              reconnecting
+                ? `进行中（${reconnectAttempts}次）`
+                : "未开启/未触发"
+            }}
+          </li>
           <li>服务在线房间：{{ serviceStatus?.roomCount ?? "-" }}</li>
           <li>服务参与人数：{{ serviceStatus?.participantCount ?? "-" }}</li>
         </ul>
@@ -243,28 +323,47 @@ onBeforeUnmount(() => {
     </section>
 
     <section class="rtc-console__controls">
-      <el-button type="primary" @click="handleJoin" :loading="joining" v-if="connectionState !== 'connected'">
+      <el-button
+        v-if="connectionState !== 'connected'"
+        type="primary"
+        :loading="joining"
+        @click="() => handleJoin(false)"
+      >
         加入会诊
       </el-button>
-      <el-button type="danger" @click="handleLeave" v-else>离开会诊</el-button>
       <el-button
-        @click="() => requestMediaPermissions(true)"
+        v-if="connectionState !== 'connected'"
+        :disabled="joining"
+        @click="() => handleJoin(true)"
+      >
+        强制刷新Token加入
+      </el-button>
+      <el-button v-else type="danger" @click="handleLeave">离开会诊</el-button>
+      <el-button
         :disabled="hasMediaPermissions"
+        @click="() => requestMediaPermissions(true)"
       >
         请求摄像头/麦克风
       </el-button>
-      <el-button @click="toggleAudio" :disabled="connectionState !== 'connected'">
+      <el-button
+        :disabled="connectionState !== 'connected'"
+        @click="toggleAudio"
+      >
         切换麦克风
       </el-button>
-      <el-button @click="toggleVideo" :disabled="connectionState !== 'connected'">
+      <el-button
+        :disabled="connectionState !== 'connected'"
+        @click="toggleVideo"
+      >
         切换摄像头
       </el-button>
-      <el-button @click="shareScreen" :disabled="connectionState !== 'connected'">
+      <el-button
+        :disabled="connectionState !== 'connected'"
+        @click="shareScreen"
+      >
         屏幕共享
       </el-button>
-      <span class="permission-hint">
-        当前权限：{{ mediaPermission }}
-      </span>
+      <span class="permission-hint"> 当前权限：{{ mediaPermission }} </span>
     </section>
   </div>
 </template>
@@ -279,6 +378,12 @@ onBeforeUnmount(() => {
 .rtc-console__videos,
 .rtc-console__sidebar {
   width: 100%;
+}
+
+.rtc-console__videos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .video-grid {
@@ -364,5 +469,3 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 </style>
-
-

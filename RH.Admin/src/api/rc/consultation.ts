@@ -78,10 +78,14 @@ export const closeConsultation = (id: number, data: { closeReason: string }) =>
 
 // Statistics
 export const getConsultationStatsOverview = () =>
-  http.request<ApiResponse<{ total: number; today: number; pendingReview: number; finished: number }>>(
-    "get",
-    `${modulePrefix}/overview`
-  );
+  http.request<
+    ApiResponse<{
+      total: number;
+      today: number;
+      pendingReview: number;
+      finished: number;
+    }>
+  >("get", `${modulePrefix}/overview`);
 
 export const getConsultationStatsTrend = (days: number = 30) =>
   http.request<ApiResponse<Array<{ date: string; count: number }>>>(
@@ -89,3 +93,19 @@ export const getConsultationStatsTrend = (days: number = 30) =>
     `${modulePrefix}/trend`,
     { params: { days } }
   );
+
+export const getConsultationStatsDistribution = (
+  type: "org" | "dept" | "emergency"
+) =>
+  http.request<ApiResponse<Array<{ name: string; value: number }>>>(
+    "get",
+    `${modulePrefix}/distribution`,
+    { params: { type } }
+  );
+
+export const getExpertRanking = (top: number = 5) =>
+  http.request<
+    ApiResponse<
+      Array<{ name: string; count: number; avgResponseHours: number }>
+    >
+  >("get", `${modulePrefix}/expert-ranking`, { params: { top } });

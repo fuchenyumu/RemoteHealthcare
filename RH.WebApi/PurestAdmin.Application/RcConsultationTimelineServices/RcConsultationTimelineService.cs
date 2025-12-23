@@ -6,7 +6,6 @@ namespace PurestAdmin.Application.RcConsultationTimelineServices;
 /// RcConsultationTimeline服务
 /// </summary>
 [ApiExplorerSettings(GroupName = ApiExplorerGroupConst.REMOTEHEALTHCARE)]
-[Route("api/v1/rc-consultation-timeline")]
 public class RcConsultationTimelineService(ISqlSugarClient db) : ApplicationService
 {
     private readonly ISqlSugarClient _db = db;
@@ -16,7 +15,6 @@ public class RcConsultationTimelineService(ISqlSugarClient db) : ApplicationServ
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpGet]
     public async Task<PagedList<RcConsultationTimelineOutput>> GetPagedListAsync(GetPagedListInput input)
     {
         var query = _db.Queryable<RcConsultationTimelineEntity, UserEntity>((timeline, user) => new object[]
@@ -53,7 +51,6 @@ public class RcConsultationTimelineService(ISqlSugarClient db) : ApplicationServ
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet("{id:long}")]
     public async Task<RcConsultationTimelineOutput> GetAsync(long id)
     {
         return await _db.Queryable<RcConsultationTimelineEntity, UserEntity>((timeline, user) => new object[]

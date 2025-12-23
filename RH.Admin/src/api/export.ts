@@ -1,5 +1,5 @@
 import { http } from "@/utils/http";
-import { PureHttpResponse } from "@/utils/http/types";
+import type { PureHttpResponse } from "@/utils/http/types";
 import { ElLoading } from "element-plus";
 
 export const exportFile = (url: string, params: any) => {

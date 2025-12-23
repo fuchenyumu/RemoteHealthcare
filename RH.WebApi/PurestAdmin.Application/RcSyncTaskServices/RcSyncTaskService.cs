@@ -17,7 +17,6 @@ public class RcSyncTaskService(ISqlSugarClient db, ICurrentUser currentUser) : A
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpGet]
     public async Task<PagedList<RcSyncTaskOutput>> GetPagedListAsync(GetPagedListInput input)
     {
         var query = _db.Queryable<RcSyncTaskEntity>();
@@ -50,7 +49,6 @@ public class RcSyncTaskService(ISqlSugarClient db, ICurrentUser currentUser) : A
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpGet("{id:long}")]
     public async Task<RcSyncTaskOutput> GetAsync(long id)
     {
         var entity = await _db.Queryable<RcSyncTaskEntity>().FirstAsync(x => x.Id == id)
@@ -63,7 +61,6 @@ public class RcSyncTaskService(ISqlSugarClient db, ICurrentUser currentUser) : A
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpPost]
     public async Task<long> AddAsync(AddRcSyncTaskInput input)
     {
         var entity = input.Adapt<RcSyncTaskEntity>();
@@ -80,7 +77,6 @@ public class RcSyncTaskService(ISqlSugarClient db, ICurrentUser currentUser) : A
     /// <param name="id"></param>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpPut("{id:long}")]
     public async Task PutAsync(long id, PutRcSyncTaskInput input)
     {
         var entity = await _db.Queryable<RcSyncTaskEntity>().FirstAsync(x => x.Id == id) ?? throw PersistdValidateException.Message(ErrorTipsEnum.NoResult);
@@ -98,7 +94,6 @@ public class RcSyncTaskService(ISqlSugarClient db, ICurrentUser currentUser) : A
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    [HttpDelete("{id:long}")]
     public async Task DeleteAsync(long id)
     {
         var entity = await _db.Queryable<RcSyncTaskEntity>().InSingleAsync(id) ?? throw PersistdValidateException.Message(ErrorTipsEnum.NoResult);

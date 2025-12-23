@@ -119,8 +119,7 @@ defineExpose({ showViewModal });
         ref="formViewRef"
         v-model="workflowFormData"
         :config="designConfig"
-      >
-      </vxe-form-view>
+      />
     </el-card>
     <el-card
       shadow="never"
