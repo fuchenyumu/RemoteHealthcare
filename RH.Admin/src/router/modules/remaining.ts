@@ -22,12 +22,22 @@ export default [
     }
   },
   {
+    path: "/share/consultation/:shareToken",
+    name: "ShareConsultation",
+    component: () => import("@/views/share/consultation/index.vue"),
+    meta: {
+      title: "会诊分享",
+      showLink: false,
+      rank: 102
+    }
+  },
+  {
     path: "/redirect",
     component: Layout,
     meta: {
       title: "加载中...",
       showLink: false,
-      rank: 102
+      rank: 103
     },
     children: [
       {

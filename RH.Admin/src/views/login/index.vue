@@ -2,7 +2,6 @@
 import Motion from "./utils/motion";
 import { useRouter } from "vue-router";
 import { message } from "@/utils/message";
-import { ElMessageBox } from "element-plus";
 import { loginRules } from "./utils/rule";
 import { useNav } from "@/layout/hooks/useNav";
 import type { FormInstance } from "element-plus";
@@ -13,20 +12,16 @@ import { ref, reactive, toRaw, onMounted, onBeforeUnmount } from "vue";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 import { addPathMatch } from "@/router/utils";
 import { usePermissionStoreHook } from "@/store/modules/permission";
+import { encryptPassword } from "@/utils/password-encrypt";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
 import Lock from "~icons/ri/lock-fill";
 import User from "~icons/ri/user-3-fill";
-import Github from "~icons/simple-icons/github";
-import Gitee from "~icons/simple-icons/gitee";
+import RefreshLine from "~icons/ri/refresh-line";
 import { useUserStoreHook } from "@/store/modules/user";
-import { createConnectionAsync } from "@/utils/signalr";
-import { HubConnection, HubConnectionState } from "@microsoft/signalr";
-import Register from "./Register.vue";
-import Binding from "./Binding.vue";
-const registerModalRef = ref();
-const bindingModalRef = ref();
+import { getCaptcha, type CaptchaOutput } from "@/api/auth";
+
 defineOptions({
   name: "Login"
 });
@@ -43,8 +38,40 @@ const { title } = useNav();
 
 const ruleForm = reactive({
   account: "",
-  password: ""
+  password: "",
+  captchaCode: "",
+  captchaId: ""
 });
+
+const captchaUrl = ref("");
+
+// 生成客户端标识（GUID），页面加载时生成一次，整个会话期间保持不变
+const captchaId = ref(generateUUID());
+
+// 生成 UUID 的辅助函数
+function generateUUID(): string {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+// 获取验证码
+const refreshCaptcha = async () => {
+  try {
+    // 使用固定的 captchaId，确保前端提交和后端验证使用的是同一个 ID
+    const res = await getCaptcha(captchaId.value);
+    if (res && res.id && res.img) {
+      captchaUrl.value = res.img;
+      ruleForm.captchaId = res.id;
+      // 清空验证码输入框，避免用户输入旧验证码
+      ruleForm.captchaCode = "";
+    }
+  } catch (error) {
+    console.error("获取验证码失败:", error);
+  }
+};
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
@@ -52,7 +79,16 @@ const onLogin = async (formEl: FormInstance | undefined) => {
     if (valid) {
       loading.value = true;
       try {
-        const user = await useUserStoreHook().login(ruleForm);
+        // 对密码进行加密（明文密码 + 盐值 → MD5）
+        const encryptedPassword = encryptPassword(ruleForm.password);
+
+        // 创建登录数据对象（使用加密后的密码）
+        const loginData = {
+          ...ruleForm,
+          password: encryptedPassword
+        };
+
+        const user = await useUserStoreHook().login(loginData);
         if (user) {
           usePermissionStoreHook().handleWholeMenus([]);
           addPathMatch();
@@ -60,9 +96,13 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           message("登录成功", { type: "success" });
         } else {
           message("登录失败");
+          // 登录失败后刷新验证码
+          refreshCaptcha();
         }
       } catch (error) {
         message(error.message, { type: "warning" });
+        // 登录失败后刷新验证码
+        refreshCaptcha();
       } finally {
         loading.value = false;
       }
@@ -76,51 +116,11 @@ function onkeypress({ code }: KeyboardEvent) {
     onLogin(ruleFormRef.value);
   }
 }
-const persistenceId = ref<number>(0);
-const connectionId = ref<string>("");
-const connection = ref<HubConnection>();
-const createAuthorizationConnection = async () => {
-  connection.value = await createConnectionAsync(`/authorization`);
-  connectionId.value = connection.value.connectionId;
-  connection.value.on("NoticeOpenAuthorizationPage", (url: string) => {
-    window.open(url, "_blank");
-  });
-  connection.value.on("NoticeRegister", (oAuth2UserId: number) => {
-    persistenceId.value = oAuth2UserId;
-    ElMessageBox.confirm("未检测到系统内相关联的用户信息！", "温馨提示", {
-      confirmButtonText: "有账号，去绑定",
-      cancelButtonText: "无账号，去注册"
-    })
-      .then(() => {
-        bindingModalRef.value.showAddModal();
-      })
-      .catch(() => {
-        registerModalRef.value.showAddModal();
-      });
-  });
-  connection.value.on("NoticeRedirect", (accessToken, userInfo) => {
-    useUserStoreHook().setToken(accessToken);
-    useUserStoreHook().setCurrentUser(userInfo);
-    usePermissionStoreHook().handleWholeMenus([]);
-    addPathMatch();
-    router.push("/");
-  });
-};
-
-const toAuthorize = (type: string) => {
-  if (
-    connection.value &&
-    connection.value.state === HubConnectionState.Connected
-  ) {
-    connection.value.invoke("Authorize", type);
-  } else {
-    message("连接服务器失败，请刷新后重试");
-  }
-};
 
 onMounted(() => {
   window.document.addEventListener("keypress", onkeypress);
-  createAuthorizationConnection();
+  // 初始化验证码
+  refreshCaptcha();
 });
 
 onBeforeUnmount(() => {
@@ -190,6 +190,42 @@ onBeforeUnmount(() => {
               </el-form-item>
             </Motion>
 
+            <Motion :delay="200">
+              <el-form-item
+                :rules="[
+                  {
+                    required: true,
+                    message: '请输入验证码',
+                    trigger: 'blur'
+                  }
+                ]"
+                prop="captchaCode"
+              >
+                <div class="captcha-container">
+                  <el-input
+                    v-model="ruleForm.captchaCode"
+                    clearable
+                    placeholder="验证码"
+                    style="flex: 1"
+                  />
+                  <div class="captcha-img-wrapper" @click="refreshCaptcha">
+                    <img
+                      v-if="captchaUrl"
+                      :src="captchaUrl"
+                      alt="验证码"
+                      class="captcha-img"
+                    />
+                    <el-button
+                      v-else
+                      :icon="useRenderIcon(RefreshLine)"
+                      circle
+                    />
+                    <div class="captcha-tip">点击刷新</div>
+                  </div>
+                </div>
+              </el-form-item>
+            </Motion>
+
             <Motion :delay="250">
               <el-button
                 class="w-full mt-4"
@@ -202,38 +238,9 @@ onBeforeUnmount(() => {
               </el-button>
             </Motion>
           </el-form>
-          <el-divider> 第三方登录 </el-divider>
-          <div class="button-container">
-            <el-button
-              type="primary"
-              color="#4F4F4F"
-              plain
-              circle
-              :icon="useRenderIcon(Github)"
-              @click="toAuthorize('github')"
-            />
-            <el-button
-              type="primary"
-              color="#FF2F00"
-              plain
-              circle
-              :icon="useRenderIcon(Gitee)"
-              @click="toAuthorize('gitee')"
-            />
-          </div>
         </div>
       </div>
     </div>
-    <Register
-      ref="registerModalRef"
-      :connection-id="connectionId"
-      :o-auth2-user-id="persistenceId"
-    />
-    <Binding
-      ref="bindingModalRef"
-      :connection-id="connectionId"
-      :o-auth2-user-id="persistenceId"
-    />
   </div>
 </template>
 
@@ -242,10 +249,57 @@ onBeforeUnmount(() => {
 </style>
 
 <style lang="scss" scoped>
-.button-container {
+.captcha-container {
   display: flex;
-  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+
+  .captcha-img-wrapper {
+    position: relative;
+    width: 120px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--el-border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+    background: #f5f5f5;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: var(--el-color-primary);
+
+      .captcha-tip {
+        opacity: 1;
+      }
+    }
+
+    .captcha-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .captcha-tip {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      font-size: 10px;
+      text-align: center;
+      padding: 2px 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+  }
 }
+
 :deep(.el-input-group__append, .el-input-group__prepend) {
   padding: 0;
 }

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IIS 生产环境配置 - 反向代理模式
+
+  部署说明：
+  1. 前端使用 HTTPS 443 端口（生产环境标准）
+  2. 后端使用 HTTP 内部端口（如 8808）
+  3. IIS 自动将 /api/* 和 /signalr-hubs/* 转发到后端
+
+  前端访问：https://www.example.com
+  后端内部：http://localhost:8808
+
+  需要安装 IIS URL Rewrite 模块：
+  https://www.iis.net/downloads/microsoft/url-rewrite
+-->
+<configuration>
+  <system.webServer>
+    <!-- URL 重写规则 -->
+    <rewrite>
+      <rules>
+        <!-- ==================== 反向代理规则 ==================== -->
+
+        <!-- API 代理到后端 HTTP 端口 -->
+        <rule name="ReverseProxyApiRule" stopProcessing="true">
+          <match url="^api/v1/(.*)" />
+          <conditions>
+            <add input="{CACHE_URL}" pattern="^(https?)://" />
+          </conditions>
+          <action type="Rewrite" url="http://localhost:8808/api/v1/{R:1}" />
+          <serverVariables>
+            <set name="HTTP_X_FORWARDED_PROTO" value="https" />
+            <set name="HTTP_X_FORWARDED_HOST" value="{HTTP_HOST}" />
+          </serverVariables>
+        </rule>
+
+        <!-- SignalR Hub 代理到后端 -->
+        <rule name="ReverseProxySignalRRule" stopProcessing="true">
+          <match url="^signalr-hubs/(.*)" />
+          <conditions>
+            <add input="{CACHE_URL}" pattern="^(https?)://" />
+          </conditions>
+          <action type="Rewrite" url="http://localhost:8808/signalr-hubs/{R:1}" />
+          <serverVariables>
+            <set name="HTTP_X_FORWARDED_PROTO" value="https" />
+            <set name="HTTP_X_FORWARDED_HOST" value="{HTTP_HOST}" />
+          </serverVariables>
+        </rule>
+
+        <!-- WebSocket 升级支持（SignalR 需要） -->
+        <rule name="WebSocketUpgradeRule" stopProcessing="true">
+          <match url=".*" />
+          <conditions>
+            <add input="{HTTP_UPGRADE}" pattern="WebSocket" />
+          </conditions>
+          <action type="None" />
+        </rule>
+
+        <!-- ==================== 静态文件规则 ==================== -->
+
+        <!-- 静态资源直接返回（不转发） -->
+        <rule name="StaticFilesRule" stopProcessing="true">
+          <match url="^(assets|images|fonts|css|js)/(.*)" />
+          <action type="None" />
+        </rule>
+
+        <!-- 单个静态文件（HTML, JS, CSS, 图片等） -->
+        <rule name="StaticFileExtensionsRule" stopProcessing="true">
+          <match url="([\S]+[.]js|[\S]+[.]css|[\S]+[.]json|[\S]+[.]png|[\S]+[.]jpg|[\S]+[.]jpeg|[\S]+[.]gif|[\S]+[.]svg|[\S]+[.]ico|[\S]+[.]woff|[\S]+[.]woff2|[\S]+[.]ttf|[\S]+[.]eot|[\S]+[.]map|[\S]+[.]html)$" />
+          <action type="None" />
+        </rule>
+
+        <!-- ==================== Vue Router 规则 ==================== -->
+
+        <!-- SPA 路由回退（所有非文件请求返回 index.html） -->
+        <rule name="SPAFallbackRule" stopProcessing="true">
+          <match url=".*" />
+          <conditions logicalGrouping="MatchAll">
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+            <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="/" />
+        </rule>
+      </rules>
+
+      <!-- 允许服务器变量（用于转发头信息） -->
+      <allowedServerVariables>
+        <add name="HTTP_X_FORWARDED_PROTO" />
+        <add name="HTTP_X_FORWARDED_HOST" />
+        <add name="HTTP_UPGRADE" />
+      </allowedServerVariables>
+    </rewrite>
+
+    <!-- ==================== 其他 IIS 配置 ==================== -->
+
+    <!-- MIME 类型支持 -->
+    <staticContent>
+      <mimeMap fileExtension=".json" mimeType="application/json" />
+      <mimeMap fileExtension=".woff" mimeType="application/font-woff" />
+      <mimeMap fileExtension=".woff2" mimeType="application/font-woff2" />
+      <mimeMap fileExtension=".js" mimeType="application/javascript" />
+      <mimeMap fileExtension=".mjs" mimeType="application/javascript" />
+    </staticContent>
+
+    <!-- 压缩配置 -->
+    <urlCompression doStaticCompression="true" doDynamicCompression="true" />
+    <staticContent>
+      <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="7.00:00:00" />
+    </staticContent>
+
+    <!-- 默认文档 -->
+    <defaultDocument>
+      <files>
+        <clear />
+        <add value="index.html" />
+      </files>
+    </defaultDocument>
+
+    <!-- 错误页面 -->
+    <httpErrors errorMode="Custom" existingResponse="Replace">
+      <remove statusCode="404" subStatusCode="-1" />
+      <error statusCode="404" path="/index.html" responseMode="ExecuteURL" />
+    </httpErrors>
+
+    <!-- WebSocket 支持（SignalR 需要） -->
+    <webSocket enabled="true" />
+
+    <!-- HTTP 响应头 -->
+    <httpProtocol>
+      <customHeaders>
+        <!-- 安全头 -->
+        <add name="X-Content-Type-Options" value="nosniff" />
+        <add name="X-Frame-Options" value="SAMEORIGIN" />
+        <add name="X-XSS-Protection" value="1; mode=block" />
+
+        <!-- CORS（根据需要启用） -->
+        <!--
+        <add name="Access-Control-Allow-Origin" value="https://www.example.com" />
+        <add name="Access-Control-Allow-Methods" value="GET, POST, PUT, DELETE, OPTIONS" />
+        <add name="Access-Control-Allow-Headers" value="Content-Type, Authorization" />
+        <add name="Access-Control-Allow-Credentials" value="true" />
+        -->
+      </customHeaders>
+    </httpProtocol>
+  </system.webServer>
+</configuration>

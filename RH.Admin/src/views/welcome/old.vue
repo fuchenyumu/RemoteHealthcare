@@ -102,46 +102,32 @@ onMounted(() => {
           {{ systemPlatformInfo.frameworkDescription }}
         </el-descriptions-item>
         <el-descriptions-item
-          label="gitee地址"
+          label="项目地址"
           label-align="right"
           align="center"
         >
           <el-link
-            href="https://gitee.com/dymproject/purest-admin"
+            href="https://github.com/yinzhixin/remote-healthcare"
             target="_blank"
             type="success"
             class="descriptions-text"
           >
-            https://gitee.com/dymproject/purest-admin
+            银之鑫远程会诊系统
           </el-link>
         </el-descriptions-item>
         <el-descriptions-item
-          label="github地址"
+          label="系统名称"
           label-align="right"
           align="center"
         >
-          <el-link
-            href="https://github.com/dymproject/purest-admin"
-            target="_blank"
-            type="danger"
-            class="descriptions-text"
-          >
-            https://github.com/dymproject/purest-admin
-          </el-link>
+          <span class="descriptions-text">银之鑫远程会诊系统</span>
         </el-descriptions-item>
         <el-descriptions-item
-          label="文档地址"
+          label="技术栈"
           label-align="right"
           align="center"
         >
-          <el-link
-            href="http://docs.purestadmin.com"
-            target="_blank"
-            type="danger"
-            class="descriptions-text"
-          >
-            http://docs.purestadmin.com
-          </el-link>
+          <span class="descriptions-text">Vue 3 + TypeScript + Element Plus</span>
         </el-descriptions-item>
       </el-descriptions>
     </el-card>

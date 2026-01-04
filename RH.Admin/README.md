@@ -1,4 +1,4 @@
-<h1>vue-pure-admin精简版（非国际化版本）</h1>
+<h1>银之鑫远程会诊系统</h1>
 
 [![license](https://img.shields.io/github/license/pure-admin/vue-pure-admin.svg)](LICENSE)
 
@@ -6,7 +6,9 @@
 
 ## 介绍
 
-精简版是基于 [vue-pure-admin](https://github.com/pure-admin/vue-pure-admin) 提炼出的架子，包含主体功能，更适合实际项目开发，打包后的大小在全局引入 [element-plus](https://element-plus.org) 的情况下仍然低于 `2.3MB`，并且会永久同步完整版的代码。开启 `brotli` 压缩和 `cdn` 替换本地库模式后，打包大小低于 `350kb`
+银之鑫远程会诊系统是一个基于 Vue 3 + Element Plus + TypeScript 开发的现代化远程医疗会诊平台。系统提供实时音视频通话、会诊记录管理、报告生成、多方协作等功能，支持医疗机构之间的远程会诊协作。
+
+技术栈：Vue 3、TypeScript、Element Plus、Vite、Pinia、TailwindCSS
 
 ## 版本选择
 

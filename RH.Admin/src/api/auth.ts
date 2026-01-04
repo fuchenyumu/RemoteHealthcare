@@ -20,6 +20,25 @@ export interface SystemPlatformInfo {
   machineName: string;
   version: string;
 }
+
+/**
+ * 验证码输出
+ */
+export interface CaptchaOutput {
+  /** 验证码ID */
+  id: string;
+  /** 验证码图片（Base64） */
+  img: string;
+}
+
+/**
+ * 获取验证码
+ * @param id 客户端标识（GUID），用于标识验证码
+ */
+export const getCaptcha = (id: string) => {
+  return http.request<CaptchaOutput>("get", `/auth/${id}/captcha`);
+};
+
 /** 登录 */
 export const login = async (data?: object) => {
   return http.request<UserInfoType>("post", "/auth/login", { data });

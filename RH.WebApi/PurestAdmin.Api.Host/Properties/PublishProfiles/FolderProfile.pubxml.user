@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+此文件由 Web 项目的发布/打包过程使用。可以通过编辑此 MSBuild 文件
+自定义此过程的行为。为了解与此相关的更多内容，请访问 https://go.microsoft.com/fwlink/?LinkID=208121。 
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>E:\Publish\PurestAdmin</_PublishTargetUrl>
+    <History>True|2025-12-31T04:00:18.1584909Z||;True|2025-12-31T11:31:03.4985660+08:00||;False|2025-12-31T11:11:02.0149744+08:00||;True|2025-12-31T10:18:01.8807963+08:00||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

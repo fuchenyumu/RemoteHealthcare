@@ -12,8 +12,17 @@ class Settings(BaseSettings):
     app_port: int = Field(8000, alias="APP_PORT")
     log_level: str = Field("INFO", alias="LOG_LEVEL")
 
+    # CORS配置
+    cors_origins: list[str] = Field(
+        default=["https://192.168.1.113:8848", "https://localhost:8848"],
+        alias="CORS_ORIGINS"
+    )
+    cors_allow_credentials: bool = Field(True, alias="CORS_ALLOW_CREDENTIALS")
+    cors_allow_methods: list[str] = Field(["*"], alias="CORS_ALLOW_METHODS")
+    cors_allow_headers: list[str] = Field(["*"], alias="CORS_ALLOW_HEADERS")
+
     jwt_secret_key: str = Field("replace-with-strong-secret", alias="JWT_SECRET_KEY")
-    jwt_issuer: str = Field("purest-admin", alias="JWT_ISSUER")
+    jwt_issuer: str = Field("yinzhixin-healthcare", alias="JWT_ISSUER")
     jwt_audience: str = Field("medical-rtc", alias="JWT_AUDIENCE")
     jwt_ttl_seconds: int = Field(3600, alias="JWT_TTL_SECONDS")
 

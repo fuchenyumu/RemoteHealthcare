@@ -17,4 +17,16 @@ public class LoginInput
     /// </summary>
     [Required(ErrorMessage = "密码不能为空"), MinLength(6, ErrorMessage = "密码不能少于 6 位字符")]
     public string Password { get; set; }
+
+    /// <summary>
+    /// 验证码ID
+    /// </summary>
+    [Required(ErrorMessage = "验证码ID不能为空")]
+    public string CaptchaId { get; set; }
+
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [Required(ErrorMessage = "验证码不能为空")]
+    public string CaptchaCode { get; set; }
 }

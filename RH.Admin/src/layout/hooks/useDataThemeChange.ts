@@ -63,10 +63,12 @@ export function useDataThemeChange() {
     };
 
     if (theme === "default" || theme === "light") {
-      setEpThemeColor(getConfig().EpThemeColor);
+      const epThemeColor = getConfig()?.EpThemeColor ?? "#409EFF";
+      setEpThemeColor(epThemeColor);
     } else {
       const colors = themeColors.value.find(v => v.themeColor === theme);
-      setEpThemeColor(colors.color);
+      const color = colors?.color ?? "#409EFF";
+      setEpThemeColor(color);
     }
   }
 
@@ -112,7 +114,8 @@ export function useDataThemeChange() {
   function onReset() {
     removeToken();
     storageLocal().clear();
-    const { Grey, Weak, MultiTagsCache, EpThemeColor, Layout } = getConfig();
+    const config = getConfig() ?? {};
+    const { Grey, Weak, MultiTagsCache, EpThemeColor = "#409EFF", Layout } = config;
     useAppStoreHook().setLayout(Layout);
     setEpThemeColor(EpThemeColor);
     useMultiTagsStoreHook().multiTagsCacheChange(MultiTagsCache);

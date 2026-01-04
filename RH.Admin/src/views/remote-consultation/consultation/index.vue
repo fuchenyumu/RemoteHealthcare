@@ -44,6 +44,7 @@ import type { HubConnection } from "@microsoft/signalr";
 import { getDictionaryDataByCode } from "@/api/system/dictionary";
 import { getConsultationStatsOverview } from "@/api/rc/consultation";
 import MedicalRtcConference from "../rtc/MedicalRtcConference.vue";
+import ShareLinkDialog from "./components/ShareLinkDialog.vue";
 import stampUrl from "@/assets/demo/stamp.svg";
 import { useUserStoreHook } from "@/store/modules/user";
 import type {
@@ -71,12 +72,32 @@ const evaluationData = ref<RcEvaluation[]>([]);
 
 const qrDialogVisible = ref(false);
 const qrUrl = ref("");
-const openEvaluationQR = (id: number) => {
-  // 演示环境，指向 H5 项目的开发端口 5174
-  const url = `${window.location.protocol}//${window.location.hostname}:5174/evaluation/${id}`;
-  // 使用公开 API 生成二维码
-  qrUrl.value = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
-  qrDialogVisible.value = true;
+const openEvaluationQR = async (id: number) => {
+  try {
+    // 从接口获取会诊详情，后端会返回完整的 H5 评价链接
+    const res = await getConsultationDetail(id);
+
+    if (res.data && res.data.evaluationUrl) {
+      // 使用接口返回的评价链接生成二维码
+      qrUrl.value = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(res.data.evaluationUrl)}`;
+      qrDialogVisible.value = true;
+    } else {
+      ElMessage.error("评价链接生成失败，请联系管理员");
+    }
+  } catch (error) {
+    console.error("获取评价链接失败:", error);
+    ElMessage.error("获取评价链接失败");
+  }
+};
+
+// 分享链接对话框
+const shareLinkDialogVisible = ref(false);
+const shareLinkConsultationId = ref<number | null>(null);
+const shareLinkConsultationStatus = ref<string>("");
+const openShareLinkDialog = (row: ConsultationSummary) => {
+  shareLinkConsultationId.value = row.id;
+  shareLinkConsultationStatus.value = row.consultationStatus;
+  shareLinkDialogVisible.value = true;
 };
 
 const dictSources = reactive({
@@ -469,6 +490,13 @@ const tableActions = [
             status: "primary",
             content: "音视频",
             onClick: () => openRtcConsole(row)
+          }),
+          h(VxeButton, {
+            mode: "text",
+            status: "success",
+            icon: "vxe-icon-link",
+            content: "分享",
+            onClick: () => openShareLinkDialog(row)
           })
         ];
       }
@@ -1783,6 +1811,13 @@ onMounted(async () => {
         :consultation-id="rtcConsultationId"
       />
     </el-drawer>
+
+    <!-- 分享链接对话框 -->
+    <ShareLinkDialog
+      v-model:visible="shareLinkDialogVisible"
+      :consultation-id="shareLinkConsultationId"
+      :consultation-status="shareLinkConsultationStatus"
+    />
   </div>
 </template>
 

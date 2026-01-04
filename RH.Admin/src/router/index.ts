@@ -95,7 +95,16 @@ export function resetRouter() {
 }
 
 /** 路由白名单 */
-const whiteList = ["/login", "/oauth-callback"];
+const whiteList = ["/login", "/oauth-callback", "/share/consultation"];
+
+/** 检查路径是否在白名单中 */
+const isWhiteListPath = (path: string): boolean => {
+  // 精确匹配
+  if (whiteList.includes(path)) return true;
+
+  // 前缀匹配（用于动态路由）
+  return whiteList.some(whitePath => path.startsWith(whitePath));
+};
 
 const { VITE_HIDE_HOME } = import.meta.env;
 
@@ -131,7 +140,7 @@ router.beforeEach((to: ToRouteType, _from, next) => {
     ) {
       next({ path: "/error/403" });
     } else {
-      whiteList.includes(to.fullPath) ? next(_from.fullPath) : next();
+      isWhiteListPath(to.fullPath) ? next(_from.fullPath) : next();
     }
   }
   if (currentUser) {
@@ -171,7 +180,7 @@ router.beforeEach((to: ToRouteType, _from, next) => {
     }
   } else {
     if (to.path !== "/login") {
-      if (whiteList.indexOf(to.path) !== -1) {
+      if (isWhiteListPath(to.path)) {
         next();
       } else {
         next({ path: "/login" });

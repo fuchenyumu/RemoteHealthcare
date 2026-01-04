@@ -6,8 +6,10 @@ using System.Text.Json;
 using Flurl;
 using Flurl.Http;
 
+using Lazy.Captcha.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 
@@ -24,7 +26,7 @@ namespace PurestAdmin.Application.AuthServices;
 /// 用户授权服务
 /// </summary>
 [ApiExplorerSettings(GroupName = ApiExplorerGroupConst.SYSTEM)]
-public class AuthService(IOAuth2UserManager oAuth2UserManager, IHubContext<AuthorizationHub, IAuthorizationClient> hubContext, IConfiguration configuration, IAdminToken adminToken, IHttpContextAccessor httpContextAccessor, ISqlSugarClient db, ICurrentUser currentUser) : ApplicationService
+public class AuthService(IOAuth2UserManager oAuth2UserManager, IHubContext<AuthorizationHub, IAuthorizationClient> hubContext, IConfiguration configuration, IAdminToken adminToken, IHttpContextAccessor httpContextAccessor, ISqlSugarClient db, ICurrentUser currentUser, ICaptcha captcha) : ApplicationService
 {
     /// <summary>
     /// oAuth2UserManager
@@ -54,6 +56,37 @@ public class AuthService(IOAuth2UserManager oAuth2UserManager, IHubContext<Autho
     /// 当前用户
     /// </summary>
     private readonly ICurrentUser _currentUser = currentUser;
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    private readonly ICaptcha _captcha = captcha;
+
+    /// <summary>
+    /// 生成验证码
+    /// </summary>
+    /// <param name="id">验证码ID（客户端标识，使用 GUID）</param>
+    /// <returns></returns>
+    [AllowAnonymous]
+    public CaptchaOutput GetCaptcha([Required] string id)
+    {
+        // 验证 ID 格式
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw PersistdValidateException.Message("验证码ID不能为空！");
+        }
+
+        // 使用 Lazy.Captcha.Core 生成验证码
+        var info = _captcha.Generate(id);
+
+        // 转换为 Base64
+        var base64Image = "data:image/gif;base64," + Convert.ToBase64String(info.Bytes);
+
+        return new CaptchaOutput
+        {
+            Id = id,
+            Img = base64Image,
+        };
+    }
 
     /// <summary>
     /// 用户登录
@@ -63,10 +96,47 @@ public class AuthService(IOAuth2UserManager oAuth2UserManager, IHubContext<Autho
     [AllowAnonymous]
     public async Task<LoginOutput> LoginAsync([Required] LoginInput input)
     {
-        // 判断用户名或密码是否正确
-        var password = MD5Encryption.Encrypt(input.Password);
-        var user = await _db.Queryable<UserEntity>().FirstAsync(u => u.Account.Equals(input.Account) && u.Password.Equals(password)) ?? throw PersistdValidateException.Message("用户名不存在或用户名密码错误！");
-        if (user.Status != (int)UserStatusEnum.Normal) throw PersistdValidateException.Message("帐号状态异常，请联系管理员");
+        // 1. 先验证验证码
+        if (!_captcha.Validate(input.CaptchaId, input.CaptchaCode, true))
+        {
+            throw PersistdValidateException.Message("验证码错误或已过期！");
+        }
+
+        // 2. 根据账号查询用户（获取明文密码）
+        var user = await _db.Queryable<UserEntity>().FirstAsync(u => u.Account.Equals(input.Account));
+        if (user == null)
+        {
+            throw PersistdValidateException.Message("用户名不存在或用户名密码错误！");
+        }
+
+        // 3. 获取密码盐值配置
+        var passwordSalt = _configuration.GetValue<string>("PasswordSaltOptions:Salt") ?? "YinZhiXin@2025#RemoteHealthcare";
+
+        // 4. 使用数据库明文密码 + 盐值进行 MD5 加密，与前端传来的加密密码比对
+        var encryptedPassword = MD5Encryption.Encrypt(user.Password + passwordSalt);
+        
+        // 调试日志（生产环境应移除）
+        Console.WriteLine($"=============== 登录调试信息 ===============");
+        Console.WriteLine($"账号: {input.Account}");
+        Console.WriteLine($"数据库明文密码: {user.Password}");
+        Console.WriteLine($"盐值: {passwordSalt}");
+        Console.WriteLine($"拼接字符串: {user.Password + passwordSalt}");
+        Console.WriteLine($"后端加密结果: {encryptedPassword}");
+        Console.WriteLine($"前端传来密码: {input.Password}");
+        Console.WriteLine($"密码是否匹配: {encryptedPassword.Equals(input.Password, StringComparison.OrdinalIgnoreCase)}");
+        Console.WriteLine($"==========================================");
+        
+        if (!encryptedPassword.Equals(input.Password, StringComparison.OrdinalIgnoreCase))
+        {
+            throw PersistdValidateException.Message("用户名不存在或用户名密码错误！");
+        }
+
+        // 5. 验证用户状态
+        if (user.Status != (int)UserStatusEnum.Normal)
+        {
+            throw PersistdValidateException.Message("帐号状态异常，请联系管理员");
+        }
+
         var userRole = await _db.Queryable<UserRoleEntity>().FirstAsync(x => x.UserId == user.Id);
         // 映射结果
         var output = user.Adapt<LoginOutput>();

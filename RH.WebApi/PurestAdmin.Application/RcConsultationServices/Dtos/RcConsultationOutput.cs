@@ -99,6 +99,11 @@ public class RcConsultationSummaryOutput
 /// </summary>
 public class RcConsultationDetailOutput : RcConsultationSummaryOutput
 {
+    /// <summary>
+    /// H5 评价链接（完整的 URL，用于生成二维码）
+    /// </summary>
+    public string EvaluationUrl { get; set; }
+
     public RcPatientCaseDetailOutput PatientCase { get; set; }
 
     public RcPatientPackOutput PatientPack { get; set; }

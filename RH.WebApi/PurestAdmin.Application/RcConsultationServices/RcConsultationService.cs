@@ -1,3 +1,4 @@
+﻿using Microsoft.Extensions.Configuration;
 using PurestAdmin.Application.RcConsultationAttachmentServices.Dtos;
 using PurestAdmin.Application.RcConsultationMemberServices.Dtos;
 using PurestAdmin.Application.RcConsultationReportServices.Dtos;
@@ -5,6 +6,7 @@ using PurestAdmin.Application.RcConsultationServices.Dtos;
 using PurestAdmin.Application.RcConsultationTimelineServices.Dtos;
 using PurestAdmin.Application.RcPatientCaseServices.Dtos;
 using PurestAdmin.Application.RcPatientPackServices.Dtos;
+using PurestAdmin.Application.RemoteHealthcare.H5;
 using PurestAdmin.Multiplex.Contracts.IAdminUser;
 using System.Text.Json;
 
@@ -14,12 +16,25 @@ namespace PurestAdmin.Application.RcConsultationServices;
 /// 远程会诊服务
 /// </summary>
 [ApiExplorerSettings(GroupName = ApiExplorerGroupConst.REMOTEHEALTHCARE)]
-public class RcConsultationService(ISqlSugarClient db, ICurrentUser currentUser) : ApplicationService
+public class RcConsultationService(ISqlSugarClient db, ICurrentUser currentUser, IConfiguration configuration) : ApplicationService
 {
     private readonly ISqlSugarClient _db = db;
     private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IConfiguration _configuration = configuration;
 
     private long CurrentUserId => _currentUser?.Id ?? 0;
+
+    /// <summary>
+    /// 获取 H5 配置选项
+    /// </summary>
+    private H5Options GetH5Options()
+    {
+        return new H5Options
+        {
+            EvaluationBaseUrl = _configuration["H5Options:EvaluationBaseUrl"] ?? "https://192.168.1.113:5174",
+            EvaluationPath = _configuration["H5Options:EvaluationPath"] ?? "/evaluation"
+        };
+    }
 
     /// <summary>
     /// 会诊分页列表
@@ -150,6 +165,10 @@ public class RcConsultationService(ISqlSugarClient db, ICurrentUser currentUser)
             ?? throw PersistdValidateException.Message(ErrorTipsEnum.NoResult);
 
         var detail = consultation.Adapt<RcConsultationDetailOutput>();
+
+        // 生成 H5 评价链接
+        var h5Options = GetH5Options();
+        detail.EvaluationUrl = h5Options.GetEvaluationUrl(id);
 
         // 补充基础信息
         detail.PatientCase = await BuildPatientCaseAsync(consultation.CaseId);

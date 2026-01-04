@@ -45,6 +45,8 @@ export interface ConsultationSummary {
 }
 
 export interface ConsultationDetail extends ConsultationSummary {
+  /** H5 评价链接（完整的 URL，用于生成二维码） */
+  evaluationUrl?: string;
   patientCase?: PatientCaseDetail;
   patientPack?: PatientPack;
   members?: ConsultationMember[];

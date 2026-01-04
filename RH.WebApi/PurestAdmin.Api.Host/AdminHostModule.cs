@@ -37,11 +37,11 @@ namespace PurestAdmin.Api.Host
         {
             var configuration = context.Services.GetConfiguration();
             var hostingEnvironment = context.Services.GetHostingEnvironment();
-
+            ConfigureCors(context, configuration);
             CoinfigureControllers(context, hostingEnvironment);
             ConfigureAuthorizationServices(context, configuration);
             ConfigureSwaggerServices(context);
-            ConfigureCors(context, configuration);
+            ConfigureCaptcha(context, configuration);
         }
 
         private void CoinfigureControllers(ServiceConfigurationContext context, IWebHostEnvironment hostEnvironment)
@@ -98,6 +98,17 @@ namespace PurestAdmin.Api.Host
                             {
                                 // Read the token out of the query string
                                 context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        },
+                        // 处理CORS预检请求
+                        OnForbidden = context =>
+                        {
+                            // 对于OPTIONS请求，返回200而不是403
+                            if (context.Request.Method == "OPTIONS")
+                            {
+                                context.Response.StatusCode = 200;
+                                return Task.CompletedTask;
                             }
                             return Task.CompletedTask;
                         }
@@ -177,10 +188,12 @@ namespace PurestAdmin.Api.Host
                         .AllowCredentials();
                 });
             });
-            //解决The cookie 'XSRF-TOKEN' has set 'SameSite=None' and must also set 'Secure'警告
+            // 解决The cookie 'XSRF-TOKEN' has set 'SameSite=None' and must also set 'Secure'警告
+            // HTTPS环境下Cookie安全设置
             context.Services.Configure<CookiePolicyOptions>(options =>
             {
                 options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
+                options.Secure = CookieSecurePolicy.SameAsRequest; // HTTPS时自动设置Secure标志
                 options.OnAppendCookie = cookieContext =>
                 {
                     if (cookieContext.CookieOptions.SameSite == SameSiteMode.None)
@@ -189,6 +202,11 @@ namespace PurestAdmin.Api.Host
                         {
                             cookieContext.CookieOptions.SameSite = SameSiteMode.Unspecified;
                         }
+                    }
+                    // HTTPS环境下强制设置Secure标志
+                    if (cookieContext.Context.Request.Scheme == "https")
+                    {
+                        cookieContext.CookieOptions.Secure = true;
                     }
                 };
                 options.OnDeleteCookie = cookieContext =>
@@ -200,10 +218,28 @@ namespace PurestAdmin.Api.Host
                             cookieContext.CookieOptions.SameSite = SameSiteMode.Unspecified;
                         }
                     }
+                    // HTTPS环境下强制设置Secure标志
+                    if (cookieContext.Context.Request.Scheme == "https")
+                    {
+                        cookieContext.CookieOptions.Secure = true;
+                    }
                 };
             });
 
         }
+
+        /// <summary>
+        /// 配置验证码服务（Lazy.Captcha.Core）
+        /// </summary>
+        private void ConfigureCaptcha(ServiceConfigurationContext context, IConfiguration configuration)
+        {
+            // 添加验证码服务（Lazy.Captcha.Core 标准注册方式）
+            context.Services.AddCaptcha(configuration);
+
+            // 添加内存缓存服务（默认使用内存存储）
+            context.Services.AddMemoryCache();
+        }
+
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
@@ -239,14 +275,57 @@ namespace PurestAdmin.Api.Host
             app.UseStaticFiles();
             app.UseRouting();
 
+            // 在CORS之前添加自定义OPTIONS处理中间件（增强版）
+            app.Use(async (context, next) =>
+            {
+                string path = context.Request.Path.Value ?? "";
+                string method = context.Request.Method;
+
+                // 记录所有OPTIONS请求用于调试
+                if (method == "OPTIONS")
+                {
+                    // 移除可能存在的旧响应头
+                    context.Response.Headers.Remove("Access-Control-Allow-Origin");
+                    context.Response.Headers.Remove("Access-Control-Allow-Methods");
+                    context.Response.Headers.Remove("Access-Control-Allow-Headers");
+                    context.Response.Headers.Remove("Access-Control-Allow-Credentials");
+
+                    // 设置完整的CORS响应头
+                    context.Response.Headers.Append("Access-Control-Allow-Origin", context.Request.Headers["Origin"]);
+                    context.Response.Headers.Append("Vary", "Origin");
+
+                    context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+
+                    context.Response.Headers.Append("Access-Control-Allow-Headers",
+                        "Content-Type, Authorization, X-Requested-With, Accept, Origin, " +
+                        "Access-Control-Request-Method, Access-Control-Request-Headers, " +
+                        "x-signalr-user-agent, x-signalr-connection-timeout, " +
+                        "x-signalr-protocol, x-signalr-connection-id");
+
+                    context.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
+                    context.Response.Headers.Append("Access-Control-Max-Age", "86400"); // 24小时
+
+                    context.Response.StatusCode = 200;
+
+                    Console.WriteLine($"[CORS] Response 200 OK for OPTIONS {path}");
+                    return; // 直接返回，不继续处理
+                }
+
+                await next();
+            });
+
+            // 重要: CORS必须在UseAuthentication/UseAuthorization之前
             app.UseCors();
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseConfiguredEndpoints(options =>
+            // 映射端点
+            app.UseConfiguredEndpoints(endpoints =>
             {
-                options.MapControllers().RequireAuthorization();
+                // ABP 框架会自动映射 SignalR Hubs
+                // 路由: /signalr-hubs/{hub-name}
+                // 例如: /signalr-hubs/online-user
             });
         }
 

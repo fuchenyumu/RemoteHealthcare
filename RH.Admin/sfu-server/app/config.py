@@ -12,8 +12,13 @@ class Settings(BaseSettings):
     app_port: int = Field(8000, alias="APP_PORT")
     log_level: str = Field("INFO", alias="LOG_LEVEL")
 
+    # HTTPS/SSL 配置
+    use_https: bool = Field(False, alias="USE_HTTPS")
+    ssl_cert_path: str = Field("dev-cert.pem", alias="SSL_CERT_PATH")
+    ssl_key_path: str = Field("dev-key.pem", alias="SSL_KEY_PATH")
+
     jwt_secret_key: str = Field(..., alias="JWT_SECRET_KEY")
-    jwt_issuer: str = Field("purest-admin", alias="JWT_ISSUER")
+    jwt_issuer: str = Field("yinzhixin-healthcare", alias="JWT_ISSUER")
     jwt_audience: str = Field("medical-rtc", alias="JWT_AUDIENCE")
     jwt_ttl_seconds: int = Field(3600, alias="JWT_TTL_SECONDS")
 

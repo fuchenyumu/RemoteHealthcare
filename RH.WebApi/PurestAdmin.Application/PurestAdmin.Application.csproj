@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Lazy.Captcha.Core" Version="2.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PurestAdmin.BackgroundService\PurestAdmin.BackgroundService.csproj" />
     <ProjectReference Include="..\PurestAdmin.Core\PurestAdmin.Core.csproj" />
     <ProjectReference Include="..\PurestAdmin.Multiplex.Contracts\PurestAdmin.Multiplex.Contracts.csproj" />

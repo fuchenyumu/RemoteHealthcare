@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Edit",
+      "Bash(cd:*)",
+      "Bash(git:*)"
+    ]
+  }
+}

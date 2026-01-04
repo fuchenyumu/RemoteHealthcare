@@ -158,6 +158,36 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     return doJoin(consultationId, forceRefresh, false);
   }
 
+  async function joinWithToken(token: RtcTokenResponse) {
+    if (connectionState.value === "connecting") return;
+    if (connectionState.value === "connected") {
+      await leave();
+    }
+
+    try {
+      allowAutoReconnect = false; // 分享链接不自动重连
+      desiredConsultationId = null;
+      manualClose = false;
+      connectionState.value = "connecting";
+      reconnectAttempts.value = 0;
+      reconnecting.value = false;
+      clearReconnectTimer();
+      errorMessage.value = "";
+
+      currentToken.value = token;
+      const hasMedia = await ensureLocalStream();
+      await openWebSocket(token);
+      connectionState.value = "connected";
+      if (!hasMedia) {
+        errorMessage.value ||= "未能访问本地摄像头，已仅以数据/音频加入";
+      }
+    } catch (error: any) {
+      errorMessage.value = error?.message ?? "连接失败";
+      connectionState.value = "error";
+      throw error;
+    }
+  }
+
   async function leave() {
     allowAutoReconnect = false;
     desiredConsultationId = null;
@@ -236,11 +266,16 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
   }
 
   async function ensureLocalStream(): Promise<boolean> {
-    if (localStream.value) return true;
+    if (localStream.value) {
+      console.log('[ensureLocalStream] Stream already exists:', localStream.value);
+      return true;
+    }
     const constraints = options?.mediaConstraints ?? defaultConstraints(true);
+    console.log('[ensureLocalStream] Requesting stream with constraints:', constraints);
     try {
       localStream.value =
         await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('[ensureLocalStream] Stream obtained:', localStream.value);
       mediaPermission.value = constraints.video ? "granted" : "audio-only";
       return true;
     } catch (error: any) {
@@ -254,6 +289,7 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
             audio: fallbackAudio,
             video: false
           });
+          console.log('[ensureLocalStream] Fallback audio-only stream obtained:', localStream.value);
           errorMessage.value = "摄像头不可用，已仅开启麦克风";
           mediaPermission.value = "audio-only";
           return true;
@@ -578,6 +614,7 @@ export function useMedicalRtcSession(options?: MedicalRtcSessionOptions) {
     reconnecting,
     reconnectAttempts,
     join,
+    joinWithToken,
     leave,
     toggleAudio,
     toggleVideo,

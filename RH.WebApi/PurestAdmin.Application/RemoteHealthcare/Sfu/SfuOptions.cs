@@ -14,6 +14,12 @@ public class SfuOptions
     public string BaseUrl { get; set; } = "http://127.0.0.1:8000";
 
     /// <summary>
+    /// 前端Web应用基础地址，例如 http://localhost:3000
+    /// 用于生成分享链接
+    /// </summary>
+    public string? WebBaseUrl { get; set; } = "http://localhost:3000";
+
+    /// <summary>
     /// 颁发 Token 的接口路径，默认 /api/health/token
     /// </summary>
     [Required]

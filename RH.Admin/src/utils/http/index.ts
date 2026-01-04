@@ -16,11 +16,19 @@ import { message } from "@/utils/message";
 import { useUserStoreHook } from "@/store/modules/user";
 import { ElLoading, ElMessage } from "element-plus";
 
+// 获取 API 基础地址（优先使用 public/config.js，回退到环境变量）
+const getApiBaseUrl = () => {
+  if (window.__APP_CONFIG__?.apiBaseUrl) {
+    return window.__APP_CONFIG__.apiBaseUrl;
+  }
+  return import.meta.env.VITE_BASE_URL || '';
+};
+
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 const defaultConfig: AxiosRequestConfig = {
   // 请求超时时间
   timeout: 10000,
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     Accept: "application/json, text/plain, */*",
     "Content-Type": "application/json",
@@ -76,12 +84,27 @@ class PureHttp {
           return config;
         }
         /** 请求白名单，放置一些不需要token的接口（通过设置请求白名单，防止token过期后再请求造成的死循环问题） */
-        // const whiteList = ["/login"];
-        if (config.url.endsWith("/login")) {
+        const whiteList = [
+          "/login",
+          "/captcha", // 验证码接口
+          "/share/validate/", // 分享链接验证
+          "/share/rtc-token" // 分享链接获取 RTC Token
+        ];
+
+        // 检查是否在白名单中
+        const isWhiteListed = whiteList.some(path =>
+          config.url?.includes(path)
+        );
+
+        if (isWhiteListed) {
+          // 白名单接口不添加 Authorization header
           return Promise.resolve(config);
         } else {
-          config.headers.Authorization =
-            "Bearer " + useUserStoreHook().getToken;
+          // 其他接口添加 Authorization header
+          const token = useUserStoreHook().getToken;
+          if (token) {
+            config.headers.Authorization = "Bearer " + token;
+          }
         }
         return Promise.resolve(config);
       },
@@ -125,13 +148,20 @@ class PureHttp {
         const data = response.data as any;
         switch (response.status) {
           case HttpStatusCode.Unauthorized:
-            ElMessage({
-              message: "登陆超时，5秒后返回登录页面",
-              type: "warning"
-            });
-            setTimeout(() => {
-              useUserStoreHook().logOut();
-            }, 5000);
+            // 检查是否是分享页面，分享页面不需要跳转登录
+            const currentPath =
+              window.location.hash.replace("#", "") || window.location.pathname;
+            const isSharePage = currentPath.startsWith("/share/consultation");
+
+            if (!isSharePage) {
+              ElMessage({
+                message: "登陆超时，5秒后返回登录页面",
+                type: "warning"
+              });
+              setTimeout(() => {
+                useUserStoreHook().logOut();
+              }, 5000);
+            }
             break;
           case HttpStatusCode.Forbidden:
             message("未授权", {
@@ -179,7 +209,9 @@ class PureHttp {
       ...param,
       ...axiosConfig
     } as PureHttpRequestConfig;
-    config.baseURL = "/api/v1";
+    // 使用完整的基础URL，包含 /api/v1 前缀（优先使用 public/config.js）
+    const apiBaseUrl = getApiBaseUrl();
+    config.baseURL = `${apiBaseUrl.replace(/\/$/, "")}/api/v1`;
     // 单独处理自定义请求/响应回调
     return new Promise((resolve, reject) => {
       const loading = ElLoading.service({
