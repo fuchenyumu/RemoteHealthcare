@@ -78,7 +78,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 Thanks to all the developers who contributed to this project!
 
-- [@gxx](mailto:1184470032@qq.com) - 项目初始化与系统建设
+- [@gxx](https://github.com/gxx) - 项目初始化与系统建设
 
 ---
 
