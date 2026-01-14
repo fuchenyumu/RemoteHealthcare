@@ -84,4 +84,4 @@ Thanks to all the developers who contributed to this project!
 
 ## 许可证 / License
 
-[MIT © 2020-present](./LICENSE)
+[MIT © 2025 fuchenyumu](./LICENSE)
