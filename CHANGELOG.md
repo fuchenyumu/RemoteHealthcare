@@ -78,7 +78,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 Thanks to all the developers who contributed to this project!
 
-- [@gxx](https://github.com/gxx) - 项目初始化与系统建设
+- gxx - 项目初始化与系统建设 (Initial system construction)
 
 ---
 
